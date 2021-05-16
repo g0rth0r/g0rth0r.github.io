@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2021-05-10T23:17:07+02:00</updated><id>/feed.xml</id><title type="html">CTF Writeups &amp;amp; Tech Stuff</title><subtitle>HTB Writeups and other techhie stuff</subtitle><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><entry><title type="html">HTB Writeup - Armageddon</title><link href="/posts/HTB-Writeup-Armageddon" rel="alternate" type="text/html" title="HTB Writeup - Armageddon" /><published>2021-05-09T23:20:00+02:00</published><updated>2021-05-09T23:20:00+02:00</updated><id>/posts/HTB-Writeup:-Armageddon</id><content type="html" xml:base="/posts/HTB-Writeup-Armageddon">&lt;p&gt;Write up for the easy-rated HTB box &lt;strong&gt;Armageddon&lt;/strong&gt;, completed on May 9th 2021. Fairly straightforward machine if you know where to look; 80% of the time spent here was on trying to do “optional” steps.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2021-05-16T12:15:41+02:00</updated><id>/feed.xml</id><title type="html">CTF Writeups &amp;amp; Tech Stuff</title><subtitle>HTB Writeups and other techhie stuff</subtitle><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><entry><title type="html">HTB Writeup - Armageddon</title><link href="/posts/HTB-Writeup-Armageddon" rel="alternate" type="text/html" title="HTB Writeup - Armageddon" /><published>2021-05-09T23:20:00+02:00</published><updated>2021-05-09T23:20:00+02:00</updated><id>/posts/HTB-Writeup:-Armageddon</id><content type="html" xml:base="/posts/HTB-Writeup-Armageddon">&lt;p&gt;Write up for the easy-rated HTB box &lt;strong&gt;Armageddon&lt;/strong&gt;, completed on May 9th 2021. Fairly straightforward machine if you know where to look; 80% of the time spent here was on trying to do “optional” steps.&lt;/p&gt;
 
 &lt;p&gt;Note that I try to write up my complete process and not only the straight way to get the flags, including errors and time-wasters, which I see as opportunity to learn instead of giving the straight up solution every time.&lt;/p&gt;
 
@@ -663,7 +663,9 @@ curl &lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt; &lt;span class=&quot;nt&qu
 
 &lt;p&gt;We are able to successfully login as root and get the :black_flag: &lt;strong&gt;root.txt&lt;/strong&gt; :black_flag: flag.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/images/Pasted image 20210425012911.png&quot; alt=&quot;Pasted image 20210425012911&quot; /&gt;&lt;/p&gt;</content><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><category term="htb" /><summary type="html"></summary></entry><entry><title type="html">HTB Writeup - Ready</title><link href="/posts/HTB-Writeup-Ready" rel="alternate" type="text/html" title="HTB Writeup - Ready" /><published>2021-03-31T01:18:00+02:00</published><updated>2021-03-31T01:18:00+02:00</updated><id>/posts/HTB-Writeup:-Ready</id><content type="html" xml:base="/posts/HTB-Writeup-Ready">&lt;p&gt;A fun and well made box, where 80% of the time was spent enumerating and the remaining 20% split on easy foothold and root privesc.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/images/Pasted image 20210425012911.png&quot; alt=&quot;Pasted image 20210425012911&quot; /&gt;&lt;/p&gt;</content><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><category term="htb" /><summary type="html"></summary></entry><entry><title type="html">HTB Writeup - Ready</title><link href="/posts/HTB-Writeup-Ready" rel="alternate" type="text/html" title="HTB Writeup - Ready" /><published>2021-03-31T01:18:00+02:00</published><updated>2021-03-31T01:18:00+02:00</updated><id>/posts/HTB-Writeup:-Ready</id><content type="html" xml:base="/posts/HTB-Writeup-Ready">&lt;p&gt;&lt;img src=&quot;/assets/images/d7a56d2476ef541853df356a46976f45.png&quot; alt=&quot;ready_logo&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;A fun and well made box, where 80% of the time was spent enumerating and the remaining 20% split on easy foothold and root privesc.&lt;/p&gt;
 
 &lt;p&gt;&lt;strong&gt;Disclaimer:&lt;/strong&gt; I am in no way an expert in the matter, been learning netsec and pentesting on the side by doing these boxes on HTB and watching an obscene amount of IppSec videos. What I am writing is simply my though process and might not be the most optimal solution, I find this method of writing good for self-education purposes. In fact, I try to write in the order I did everything, so you might see me bouncing back and forth between services.&lt;/p&gt;
 
@@ -945,7 +947,7 @@ b7f98681505cd39066f67147b103c2b3
   &lt;li&gt;
     &lt;p&gt;Box was a bit confusing at times, probably due to the multiple users on it at the same time updating passwords and all.&lt;/p&gt;
   &lt;/li&gt;
-&lt;/ul&gt;</content><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><category term="htb" /><summary type="html">A fun and well made box, where 80% of the time was spent enumerating and the remaining 20% split on easy foothold and root privesc.</summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="/assets/images/d7a56d2476ef541853df356a46976f45.png" /><media:content medium="image" url="/assets/images/d7a56d2476ef541853df356a46976f45.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">HTB Writeup - Luanne</title><link href="/posts/HTB-Writeup-Luanne" rel="alternate" type="text/html" title="HTB Writeup - Luanne" /><published>2021-03-18T19:36:34+01:00</published><updated>2021-03-18T19:36:34+01:00</updated><id>/posts/HTB-Writeup:-Luanne</id><content type="html" xml:base="/posts/HTB-Writeup-Luanne">&lt;p&gt;&lt;img src=&quot;/assets/images/7a4a9e4198292175421007edb1724a11.png&quot; alt=&quot;7a4a9e4198292175421007edb1724a11&quot; /&gt;&lt;/p&gt;
+&lt;/ul&gt;</content><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><category term="htb" /><summary type="html"></summary></entry><entry><title type="html">HTB Writeup - Luanne</title><link href="/posts/HTB-Writeup-Luanne" rel="alternate" type="text/html" title="HTB Writeup - Luanne" /><published>2021-03-18T19:36:34+01:00</published><updated>2021-03-18T19:36:34+01:00</updated><id>/posts/HTB-Writeup:-Luanne</id><content type="html" xml:base="/posts/HTB-Writeup-Luanne">&lt;p&gt;&lt;img src=&quot;/assets/images/7a4a9e4198292175421007edb1724a11.png&quot; alt=&quot;7a4a9e4198292175421007edb1724a11&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;This is one of my first few writeup for HTB boxes, starting with Luanne, a NetBSD box completed on March 17 2021.&lt;/p&gt;
 
@@ -1292,166 +1294,4 @@ Password: &lt;span class=&quot;c&quot;&gt;#littlebear                           
 &lt;span class=&quot;nv&quot;&gt;uid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;root&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;gid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;wheel&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;groups&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;wheel&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;,2&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;kmem&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;,3&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;sys&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;,4&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;tty&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;,5&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;operator&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;,20&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;staff&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;,31&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;guest&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;,34&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;nvmm&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;  
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;We are in as &lt;strong&gt;root&lt;/strong&gt; and gain the 🏴 &lt;strong&gt;root.txt&lt;/strong&gt; 🏴 flag.&lt;/p&gt;</content><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><category term="htb" /><summary type="html"></summary></entry><entry><title type="html">Yet Another Sample Page</title><link href="/posts/Yet-Another-Sample-Page" rel="alternate" type="text/html" title="Yet Another Sample Page" /><published>2018-01-06T00:00:00+01:00</published><updated>2018-01-06T00:00:00+01:00</updated><id>/posts/Yet-Another-Sample-Page</id><content type="html" xml:base="/posts/Yet-Another-Sample-Page">&lt;p&gt;Text can be &lt;strong&gt;bold&lt;/strong&gt;, &lt;em&gt;italic&lt;/em&gt;, &lt;del&gt;strikethrough&lt;/del&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;keyword&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;another-page&quot;&gt;Link to another page&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;There should be whitespace between paragraphs.&lt;/p&gt;
-
-&lt;p&gt;There should be whitespace between paragraphs. We recommend including a README, or a file with information about your project.&lt;/p&gt;
-
-&lt;h1 id=&quot;header-1&quot;&gt;&lt;a href=&quot;#header-1&quot;&gt;&lt;/a&gt;Header 1&lt;/h1&gt;
-
-&lt;p&gt;This is a normal paragraph following a header. GitHub is a code hosting platform for version control and collaboration. It lets you and others work together on projects from anywhere.&lt;/p&gt;
-
-&lt;h2 id=&quot;header-2&quot;&gt;&lt;a href=&quot;#header-2&quot;&gt;&lt;/a&gt;Header 2&lt;/h2&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;This is a blockquote following a header.&lt;/p&gt;
-
-  &lt;p&gt;When something is important enough, you do it even if the odds are not in your favor.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h3 id=&quot;header-3&quot;&gt;&lt;a href=&quot;#header-3&quot;&gt;&lt;/a&gt;Header 3&lt;/h3&gt;
-
-&lt;div class=&quot;language-js highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// Javascript code with syntax highlighting.&lt;/span&gt;
-&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;lang&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;l&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;nx&quot;&gt;dateformat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;i18n&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;require&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;./lang/&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;l&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;language-ruby highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# Ruby code with syntax highlighting&lt;/span&gt;
-&lt;span class=&quot;no&quot;&gt;GitHubPages&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;Dependencies&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;gems&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;each&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gem&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;add_dependency&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gem&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;= &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h4 id=&quot;header-4&quot;&gt;&lt;a href=&quot;#header-4&quot;&gt;&lt;/a&gt;Header 4&lt;/h4&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;This is an unordered list following a header.&lt;/li&gt;
-  &lt;li&gt;This is an unordered list following a header.&lt;/li&gt;
-  &lt;li&gt;This is an unordered list following a header.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h5 id=&quot;header-5&quot;&gt;&lt;a href=&quot;#header-5&quot;&gt;&lt;/a&gt;Header 5&lt;/h5&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;This is an ordered list following a header.&lt;/li&gt;
-  &lt;li&gt;This is an ordered list following a header.&lt;/li&gt;
-  &lt;li&gt;This is an ordered list following a header.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h6 id=&quot;header-6&quot;&gt;&lt;a href=&quot;#header-6&quot;&gt;&lt;/a&gt;Header 6&lt;/h6&gt;
-
-&lt;table&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th style=&quot;text-align: left&quot;&gt;head1&lt;/th&gt;
-      &lt;th style=&quot;text-align: left&quot;&gt;head two&lt;/th&gt;
-      &lt;th style=&quot;text-align: left&quot;&gt;three&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;ok&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;good swedish fish&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;nice&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;out of stock&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;good and plenty&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;nice&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;ok&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;good &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;oreos&lt;/code&gt;&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;hmm&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;ok&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;good &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;zoute&lt;/code&gt; drop&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;yumm&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;h3 id=&quot;theres-a-horizontal-rule-below-this&quot;&gt;There’s a horizontal rule below this.&lt;/h3&gt;
-
-&lt;hr /&gt;
-
-&lt;h3 id=&quot;here-is-an-unordered-list&quot;&gt;Here is an unordered list:&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Item foo&lt;/li&gt;
-  &lt;li&gt;Item bar&lt;/li&gt;
-  &lt;li&gt;Item baz&lt;/li&gt;
-  &lt;li&gt;Item zip&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;and-an-ordered-list&quot;&gt;And an ordered list:&lt;/h3&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;Item one&lt;/li&gt;
-  &lt;li&gt;Item two&lt;/li&gt;
-  &lt;li&gt;Item three&lt;/li&gt;
-  &lt;li&gt;Item four&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h3 id=&quot;and-a-nested-list&quot;&gt;And a nested list:&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;level 1 item
-    &lt;ul&gt;
-      &lt;li&gt;level 2 item&lt;/li&gt;
-      &lt;li&gt;level 2 item
-        &lt;ul&gt;
-          &lt;li&gt;level 3 item&lt;/li&gt;
-          &lt;li&gt;level 3 item&lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;level 1 item
-    &lt;ul&gt;
-      &lt;li&gt;level 2 item&lt;/li&gt;
-      &lt;li&gt;level 2 item&lt;/li&gt;
-      &lt;li&gt;level 2 item&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;level 1 item
-    &lt;ul&gt;
-      &lt;li&gt;level 2 item&lt;/li&gt;
-      &lt;li&gt;level 2 item&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;level 1 item&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;small-image&quot;&gt;Small image&lt;/h3&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://assets-cdn.github.com/images/icons/emoji/octocat.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;large-image&quot;&gt;Large image&lt;/h3&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://guides.github.com/activities/hello-world/branching.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;definition-lists-can-be-used-with-html-syntax&quot;&gt;Definition lists can be used with HTML syntax.&lt;/h3&gt;
-
-&lt;dl&gt;
-&lt;dt&gt;Name&lt;/dt&gt;
-&lt;dd&gt;Godzilla&lt;/dd&gt;
-&lt;dt&gt;Born&lt;/dt&gt;
-&lt;dd&gt;1952&lt;/dd&gt;
-&lt;dt&gt;Birthplace&lt;/dt&gt;
-&lt;dd&gt;Japan&lt;/dd&gt;
-&lt;dt&gt;Color&lt;/dt&gt;
-&lt;dd&gt;Green&lt;/dd&gt;
-&lt;/dl&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Long, single-line code blocks should not wrap. They should horizontally scroll if they are too long. This line should be long enough to demonstrate this.
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;The final element.
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><summary type="html">Text can be bold, italic, strikethrough or keyword.</summary></entry></feed>
+&lt;p&gt;We are in as &lt;strong&gt;root&lt;/strong&gt; and gain the 🏴 &lt;strong&gt;root.txt&lt;/strong&gt; 🏴 flag.&lt;/p&gt;</content><author><name>stbl</name><email>g0rth0r@lolnight.lol</email></author><category term="htb" /><summary type="html"></summary></entry></feed>
